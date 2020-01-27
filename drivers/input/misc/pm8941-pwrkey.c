@@ -15,6 +15,7 @@
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/reboot.h>
+#include <linux/reboot.h>
 #include <linux/regmap.h>
 
 #define PON_REV2			0x01
@@ -55,6 +56,8 @@ struct pm8941_pwrkey {
 	u32 code;
 	const struct pm8941_data *data;
 };
+
+static int pressed = 0;
 
 static int pm8941_reboot_notify(struct notifier_block *nb,
 				unsigned long code, void *unused)
@@ -129,6 +132,18 @@ static irqreturn_t pm8941_pwrkey_irq(int irq, void *_data)
 	input_report_key(pwrkey->input, pwrkey->code,
 			 sts & pwrkey->data->status_bit);
 	input_sync(pwrkey->input);
+
+
+	if (sts & pwrkey->data->status_bit) {
+		if (pressed && pressed != pwrkey->code) {
+			kernel_restart(NULL);
+		}
+		pressed += pwrkey->code;
+	} else {
+		pressed -= pwrkey->code;
+		if (pressed < 0)
+			pressed = 0;
+	}
 
 	return IRQ_HANDLED;
 }

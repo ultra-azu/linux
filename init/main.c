@@ -784,6 +784,10 @@ static void __init mm_init(void)
 	pti_init();
 }
 
+#define RAMOOPS_ADDR 0xef000000
+#define RAMOOPS_SIZE 0x80000
+extern unsigned char * ramoops_mem_base;
+extern unsigned int ramoops_mem_len;
 void __init __weak arch_call_rest_init(void)
 {
 	rest_init();
@@ -846,6 +850,8 @@ asmlinkage __visible void __init start_kernel(void)
 	sort_main_extable();
 	trap_init();
 	mm_init();
+	ramoops_mem_base = ioremap(RAMOOPS_ADDR, RAMOOPS_SIZE);
+	ramoops_mem_len = RAMOOPS_SIZE;
 
 	ftrace_init();
 

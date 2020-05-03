@@ -909,8 +909,6 @@
 
 			operating-points-v2 = <&gpu_opp_table>;
 
-			firmware-name = "a506_zap.mdt";
-
 			gpu_opp_table: opp-table {
 				compatible  ="operating-points-v2";
 
@@ -948,6 +946,7 @@
 
 			zap-shader {
 				memory-region = <&zap_shader_region>;
+				firmware-name = "a506_zap.mdt";
 			};
 		};
 

@@ -21,14 +21,14 @@
 		ranges;
 		stdout-path = "display0";
 
-		status = "disabled";
-
 		framebuffer: fremebuffer@90001000 {
 			compatible = "simple-framebuffer";
 			reg = <0x0 0x90001000 0x0 0x13ff000>;
 			format = "r8g8b8";
 			power-domains = <&gcc MDSS_GDSC>;
 			display = &mdss;
+
+			status = "disabled";
 		};
 	};
 

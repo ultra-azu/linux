@@ -235,15 +235,6 @@
 	};
 };
 
-&pm8953_l2 {
-	regulator-min-microvolt = <1000000>;
-	regulator-max-microvolt = <1000000>;
-};
-
-&pm8953_l6 {
-	regulator-always-on;
-};
-
 &spmi_regulators {
 	status = "okay";
 };
@@ -252,24 +243,24 @@
 	compatible = "qcom,rpm-pm8953-regulators";
 
 	s1 { // Modem
-		regulator-min-microvolt = <870000>;
-		regulator-max-microvolt = <1156000>;
+		regulator-min-microvolt = <863000>;
+		regulator-max-microvolt = <1152000>;
 	};
 	s3 { // CSI
-		regulator-min-microvolt = <1225000>;
-		regulator-max-microvolt = <1225000>;
+		regulator-min-microvolt = <1224000>;
+		regulator-max-microvolt = <1224000>;
 	};
 	s4 { // Audio codec
-		regulator-min-microvolt = <1900000>;
-		regulator-max-microvolt = <2050000>;
+		regulator-min-microvolt = <1896000>;
+		regulator-max-microvolt = <2048000>;
 	};
 	l1 { // unused
 		regulator-min-microvolt = <1000000>;
 		regulator-max-microvolt = <1100000>;
 	};
-	l2 { // unused
-		regulator-min-microvolt = <975000>;
-		regulator-max-microvolt = <1225000>;
+	l2 { // Always-on
+		regulator-min-microvolt = <1000000>;
+		regulator-max-microvolt = <1000000>;
 	};
 	l3 { // Usb, mdss phy
 		regulator-min-microvolt = <925000>;

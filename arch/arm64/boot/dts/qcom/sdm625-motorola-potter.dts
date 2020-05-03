@@ -50,12 +50,6 @@
 		};
 	};
 
-	soc {
-		apps-iommu { // FIXME: Causes flood of context faults
-			status = "disabled";
-		};
-	};
-
 	gpio-keys {
 		compatible = "gpio-keys";
 		input-name = "gpio-keys";
@@ -103,7 +97,7 @@
 	pinctrl-1 = <&pmx_mdss_sleep>;
 
 	panel@0 {
-		//compatible = "TODO";
+		compatible = "boe,bs052fhm-a00-6c01";
 		reg = <0>;
 
 		reset-gpios = <&msmgpio 61 GPIO_ACTIVE_LOW>;
@@ -248,6 +242,10 @@
 
 &pm8953_l6 {
 	regulator-always-on;
+};
+
+&spmi_regulators {
+	status = "okay";
 };
 
 &smd_rpm_regulators {

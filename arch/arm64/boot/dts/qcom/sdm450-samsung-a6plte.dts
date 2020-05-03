@@ -441,16 +441,16 @@
 	compatible = "qcom,rpm-pm8953-regulators";
 
 	s1 { // Modem
-		regulator-min-microvolt = <870000>;
-		regulator-max-microvolt = <1156000>;
+		regulator-min-microvolt = <864000>;
+		regulator-max-microvolt = <1152000>;
 	};
 	s3 { // CSI
-		regulator-min-microvolt = <1225000>;
-		regulator-max-microvolt = <1225000>;
+		regulator-min-microvolt = <1224000>;
+		regulator-max-microvolt = <1224000>;
 	};
 	s4 { // Audio codec
-		regulator-min-microvolt = <1900000>;
-		regulator-max-microvolt = <2050000>;
+		regulator-min-microvolt = <1896000>;
+		regulator-max-microvolt = <2048000>;
 	};
 	l1 { // unused
 		regulator-min-microvolt = <1000000>;

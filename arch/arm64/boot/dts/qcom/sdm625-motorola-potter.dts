@@ -82,6 +82,26 @@
 	status = "okay";
 };
 
+&i2c_5 {
+	status = "okay";
+
+	nfc@28 {
+		compatible = "nxp,pn544-i2c";
+		reg = <0x28>;
+		interrupt-parent = <&msmgpio>;
+		interrupts = <17 0x00>;
+
+		enable-gpios = <&msmgpio 16 GPIO_ACTIVE_HIGH>; /* EN */
+		firmware-gpios = <&msmgpio 62 GPIO_ACTIVE_HIGH>; /* Firmware */
+
+		nxp,pnxx-discharge-delay = <100>;
+		nxp,pnxx-ven-inv-polarity = <0x00>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&nfc_irq_default &nfc_pwr_default &nfc_firm_default>;
+	};
+};
+
 &dsi0 {
 	status = "okay";
 
@@ -231,6 +251,38 @@
 			pins = "gpio61";
 			drive-strength = <2>; /* 2 mA */
 			bias-pull-down;
+		};
+	};
+
+	pmx_nfc_irq {
+		pins = "gpio17";
+		label = "nfc_irq";
+
+		nfc_irq_default: default {
+			bias-pull-down;
+			drive-strength = <2>;
+		};
+	};
+
+	pmx_nfc_pwr {
+		pins = "gpio16";
+		label = "nfc_pwr";
+
+		nfc_pwr_default: default {
+			bias-pull-down;
+			output-low;
+			drive-strength = <2>;
+		};
+	};
+
+	pmx_nfc_firm {
+		pins = "gpio62";
+		label = "nfc_firm";
+
+		nfc_firm_default: default {
+			bias-pull-down;
+			output-low;
+			drive-strength = <2>;
 		};
 	};
 };

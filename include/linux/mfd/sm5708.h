@@ -28,36 +28,28 @@
 //#include <linux/leds-sm5708.h>
 /* #include <linux/battery/charger/sm5708_charger.h> */
 
-#define MFD_DEV_NAME "sm5708-mfd"
-
-
-#define SM5708_I2C_ADDR			(0x92)
-#define SM5708_REG_INVALID		(0xff)
-
 enum sm5708_reg {
-	SM5708_REG_INT1				= 0x00,
-	SM5708_REG_INT2				= 0x01,
-	SM5708_REG_INT3				= 0x02,
-	SM5708_REG_INT4				= 0x03,
-	SM5708_REG_INTMSK1			= 0x04,
-	SM5708_REG_INTMSK2			= 0x05,
-	SM5708_REG_INTMSK3			= 0x06,
-	SM5708_REG_INTMSK4			= 0x07,
-	SM5708_REG_STATUS1			= 0x08,
-	SM5708_REG_STATUS2			= 0x09,
-	SM5708_REG_STATUS3			= 0x0A,
-	SM5708_REG_STATUS4			= 0x0B,
-	SM5708_REG_CNTL				= 0x0C,
-	SM5708_REG_VBUSCNTL			= 0x0D,
-
-	SM5708_REG_CHGCNTL1			= 0x0F,
-	SM5708_REG_CHGCNTL2			= 0x10,
-
-	SM5708_REG_CHGCNTL3			= 0x12,
-	SM5708_REG_CHGCNTL4			= 0x13,
-	SM5708_REG_CHGCNTL5			= 0x14,
-	SM5708_REG_CHGCNTL6			= 0x15,
-	SM5708_REG_CHGCNTL7			= 0x16,
+	SM5708_REG_INT1			= 0x00,
+	SM5708_REG_INT2			= 0x01,
+	SM5708_REG_INT3			= 0x02,
+	SM5708_REG_INT4			= 0x03,
+	SM5708_REG_INTMSK1		= 0x04,
+	SM5708_REG_INTMSK2		= 0x05,
+	SM5708_REG_INTMSK3		= 0x06,
+	SM5708_REG_INTMSK4		= 0x07,
+	SM5708_REG_STATUS1		= 0x08,
+	SM5708_REG_STATUS2		= 0x09,
+	SM5708_REG_STATUS3		= 0x0A,
+	SM5708_REG_STATUS4		= 0x0B,
+	SM5708_REG_CNTL			= 0x0C,
+	SM5708_REG_VBUSCNTL		= 0x0D,
+	SM5708_REG_CHGCNTL1		= 0x0F,
+	SM5708_REG_CHGCNTL2		= 0x10,
+	SM5708_REG_CHGCNTL3		= 0x12,
+	SM5708_REG_CHGCNTL4		= 0x13,
+	SM5708_REG_CHGCNTL5		= 0x14,
+	SM5708_REG_CHGCNTL6		= 0x15,
+	SM5708_REG_CHGCNTL7		= 0x16,
 	SM5708_REG_FLED1CNTL1		= 0x17,
 	SM5708_REG_FLED1CNTL2		= 0x18,
 	SM5708_REG_FLED1CNTL3		= 0x19,
@@ -68,9 +60,9 @@ enum sm5708_reg {
 	SM5708_REG_FLED2CNTL4		= 0x1E,
 	SM5708_REG_FLEDCNTL5		= 0x1F,
 	SM5708_REG_FLEDCNTL6		= 0x20,
-	SM5708_REG_SBPSCNTL			= 0x21,
+	SM5708_REG_SBPSCNTL		= 0x21,
 	SM5708_REG_CNTLMODEONOFF	= 0x22,
-	SM5708_REG_CNTLPWM			= 0x23,
+	SM5708_REG_CNTLPWM		= 0x23,
 	SM5708_REG_RLEDCURRENT		= 0x24,
 	SM5708_REG_GLEDCURRENT		= 0x25,
 	SM5708_REG_BLEDCURRENT		= 0x26,
@@ -90,8 +82,8 @@ enum sm5708_reg {
 	SM5708_REG_BLEDCNTL3		= 0x34,
 	SM5708_REG_BLEDCNTL4		= 0x35,
 	SM5708_REG_HAPTICCNTL		= 0x36,
-	SM5708_REG_DEVICEID			= 0x37,
-	SM5708_REG_FACTORY			= 0x3E,
+	SM5708_REG_DEVICEID		= 0x37,
+	SM5708_REG_FACTORY		= 0x3E,
 
 	SM5708_REG_MAX,
 };
@@ -140,19 +132,12 @@ struct sm5708_dev {
 	int type;
 
 	int irq;
-	int irq_base;
-	int irq_gpio;
 	bool wakeup;
 	struct mutex irqlock;
-	int irq_masks_cur[SM5708_MAX_IRQ];
-	int irq_masks_cache[SM5708_MAX_IRQ];
-	uint8_t irq_status[4];
 
-#ifdef CONFIG_HIBERNATION
-	/* For hibernation */
-	u8 reg_dump[SM5708_REG_MAX];
-#endif
+	struct regmap *regmap;
 
+	struct regmap_irq_chip_data *irq_data; /* For MUIC and Charger */
 	struct sm5708_platform_data *pdata;
 };
 
@@ -164,23 +149,9 @@ extern int sm5708_irq_init(struct sm5708_dev *sm5708);
 extern void sm5708_irq_exit(struct sm5708_dev *sm5708);
 
 /* SM5708 shared i2c API function */
-extern int sm5708_read_reg(struct i2c_client *i2c, u8 reg, u8 *dest);
-extern int sm5708_bulk_read(struct i2c_client *i2c, u8 reg, int count,
-				u8 *buf);
-extern int sm5708_write_reg(struct i2c_client *i2c, u8 reg, u8 value);
-extern int sm5708_bulk_write(struct i2c_client *i2c, u8 reg, int count,
-				u8 *buf);
-extern int sm5708_write_word(struct i2c_client *i2c, u8 reg, u16 value);
-extern int sm5708_read_word(struct i2c_client *i2c, u8 reg);
-
-extern int sm5708_update_reg(struct i2c_client *i2c, u8 reg, u8 val, u8 mask);
 
 /* for charger api */
 extern void sm5708_hv_muic_charger_init(void); /* dong : delet */
-
-/* SM5708 check muic path function */
-extern bool is_muic_usb_path_ap_usb(void);
-extern bool is_muic_usb_path_cp_usb(void);
 
 struct sm5708_regulator_data {
 	int id;
@@ -190,10 +161,7 @@ struct sm5708_regulator_data {
 
 struct sm5708_platform_data {
 	/* IRQ */
-	int irq_base;
-	int irq_gpio;
 	bool wakeup;
-	int chg_irq;
 
 #if defined(CONFIG_CHARGER_SM5708)
 	sec_charger_platform_data_t *charger_data;
@@ -208,7 +176,6 @@ struct sm5708_platform_data {
 };
 
 struct sm5708 {
-	struct regmap *regmap;
 };
 
 #endif /* __SM5708_H__ */

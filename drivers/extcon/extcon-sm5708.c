@@ -402,8 +402,8 @@ static int sm5708_muic_cable_handler(struct sm5708_muic_info *info,
 		return ret;
 
 	if (id == EXTCON_USB_HOST) {
-		if (attached)
-			sm5708_update_reg(0, SM5708_REG_CNTL, 0x7, (0x07 << 0));
+		//if (attached)
+		//	sm5708_update_reg(0, SM5708_REG_CNTL, 0x7, (0x07 << 0));
 		//else
 			////sm5708_update_reg(0, SM5708_REG_CNTL, 0x5, (0x07 << 0));
 	}

@@ -147,6 +147,8 @@
 	vdd-supply = <&pm8953_l17>;
 	vdda-supply = <&pm8953_s3>;
 	vddio-supply = <&pm8953_l6>;
+	lab-supply = <&lab_vreg>;
+	ibb-supply = <&ibb_vreg>;
 
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pmx_mdss_default>;
@@ -409,7 +411,7 @@
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <1800000>;
 	};
-	l6 { // DSI
+	smd_rmp_l6: l6 { // DSI
 		regulator-always-on;
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <1800000>;

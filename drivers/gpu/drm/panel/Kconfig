@@ -28,6 +28,17 @@ config DRM_PANEL_ASUS_Z00T_TM5P5_NT35596
 	  NT35596 1080x1920 video mode panel as found in some Asus
 	  Zenfone 2 Laser Z00T devices.
 
+config DRM_PANEL_BOE_BS052FHM_A00_6C01
+	tristate "Boe BS052FHM-A00-6C01"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	depends on BACKLIGHT_CLASS_DEVICE
+	help
+	  Say y here if you want to enable support for Boe BS052FHM-A00-6C01
+	  LCD modules. The panel has a 1920x1080 resolution and uses 24 bit
+	  RGB per pixel. It provides a MIPI DSI interface to the host and has
+	  a built-in LED backlight.
+
 config DRM_PANEL_BOE_HIMAX8279D
 	tristate "Boe Himax8279d panel"
 	depends on OF

@@ -158,18 +158,34 @@
 		};
 
 		fuel_guage {
-			compatible = "qcom,fuelguage";
-			fg-soc@4000 {
-				status = "disabled";
-			};
+			#address-cells = <1>;
+			#size-cells = <0>;
+			compatible = "qcom,pmi8950-fg";
+			//       soc    bat   memif
+			reg = <0x4000 0x4100 0x4400>;
+			qcom,cycle-counter-en;
+			qcom,capacity-learning-on;
+			qcom,batt-warm-temp = <250>;
+			qcom,batt-cool-temp = <0>;
+			qcom,batt-hot-temp= <600>;
+			qcom,batt-cold-temp = <0xffffff38>;
 
-			fg-batt@4100 {
-				status = "disabled";
-			};
+			qcom,recharge-thr = <99>;
+			qcom,delta-soc-thr = <1>;
+			qcom,cutoff-volt-mv = <3200>;
+			qcom,empty-volt-mv = <3000>;
+			qcom,fg-vbat-estimate-diff-mv = <1000>;
+			qcom,bcl-lm-thr-ma = <126>;
+			qcom,bcl-mh-thr-ma = <400>;
+			qcom,term-current-ma = <150>;
+			qcom,chg-term-current-ma = <100>;
+			qcom,fg-cc-cv-thr-mv = <4390>;
 
-			fg-memif@4400 {
-				status = "disabled";
-			};
+			qcom,cl-vbat-est-thr-uv = <300000>;
+
+			qcom,fg-max-soc = <100>;
+			qcom,fg-min-soc = <0>;
+			qcom,fg-reset-on-lockup;
 		};
 
 		bcl@4200 {
@@ -177,8 +193,9 @@
 		};
 
 		leds@1000 {
+			reg = <0x1243>;
 			compatible = "qcom,leds-atc";
-			status = "disabled";
+			label = "charging";
 		};
 	};
 

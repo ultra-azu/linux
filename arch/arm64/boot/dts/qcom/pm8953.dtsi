@@ -82,6 +82,11 @@
 			#thermal-sensor-cells = <0x00>;
 		};
 
+		coincell@2800 {
+			compatible = "qcom,pmi8941-coincell";
+			reg = <0x2800 0x100>;
+		};
+
 		pm8953_vadc: vadc@3100 {
 			compatible = "qcom,spmi-vadc";
 			reg = <0x3100>;

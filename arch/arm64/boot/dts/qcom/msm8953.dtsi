@@ -389,10 +389,8 @@
 		};
 
 		apcs: mailbox@b011000 {
-			compatible = "syscon", "qcom,apcs-msm8953";
+			compatible = "qcom,msm8953-apcs-kpss-global", "syscon";
 			reg = <0xb011000 0x1c0100>;
-			clocks = <&gcc GPLL0_EARLY>;
-			clock-names = "gpll0";
 			#clock-cells = <1>;
 			#mbox-cells = <1>;
 		};

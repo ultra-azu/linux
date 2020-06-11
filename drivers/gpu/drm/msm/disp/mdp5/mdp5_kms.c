@@ -631,7 +631,6 @@ struct msm_kms *mdp5_kms_init(struct drm_device *dev)
 	}
 
 	for (i = 0; i < MAX_BASES; i++) {
-		u32 regval;
 		if (!config->hw->pp.base[i])
 			break;
 		if (BIT(31) & mdp5_read(mdp5_kms, REG_MDP5_PP_AUTOREFRESH_CONFIG(i)))

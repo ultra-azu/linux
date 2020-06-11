@@ -57,8 +57,9 @@ static const u8 apcs_pll_regs[PLL_OFF_MAX_REGS] = {
 
 static const u32 apcs_mux_parent_map[] = { 4, 5 };
 
-static const char * const c0_c1_cci_parent_names[] = {
-	"gpll0_early", "apcs-hfpll",
+static const struct clk_parent_data c0_c1_cci_parent_data[] = {
+	{ .fw_name = "gpll", .name = "gpll0_early", },
+	{ .fw_name = "pll", .name = "apcs-hfpll", },
 };
 
 
@@ -69,8 +70,6 @@ static struct clk_alpha_pll apcs_hfpll = {
 			&clk_alpha_pll_ops, 0)
 };
 
-
-static struct clk_hw *gpll0_hw;
 struct clk_ops clk_cust_ops;
 
 static struct apcs_cluster_mux {
@@ -88,7 +87,7 @@ static struct apcs_cluster_mux {
 		.clkr = {
 			.enable_reg = 0x000058,
 			.enable_mask = BIT(0),
-			.hw.init = CLK_HW_INIT_PARENTS("apcs-c0-clk", c0_c1_cci_parent_names,
+			.hw.init = CLK_HW_INIT_PARENTS_DATA("apcs-c0-clk", c0_c1_cci_parent_data,
 				&clk_cust_ops, CLK_IGNORE_UNUSED | CLK_SET_RATE_PARENT)
 		},
 	}
@@ -104,7 +103,7 @@ static struct apcs_cluster_mux {
 		.clkr = {
 			.enable_reg = 0x000058,
 			.enable_mask = BIT(0),
-			.hw.init = CLK_HW_INIT_PARENTS("apcs-c1-clk", c0_c1_cci_parent_names,
+			.hw.init = CLK_HW_INIT_PARENTS_DATA("apcs-c1-clk", c0_c1_cci_parent_data,
 				&clk_cust_ops, CLK_IGNORE_UNUSED | CLK_SET_RATE_PARENT)
 		},
 	},
@@ -147,6 +146,7 @@ static int mux_div_determine_rate(struct clk_hw *hw,
 					struct clk_regmap_mux_div, clkr);
 	struct apcs_cluster_mux* mux = container_of(md, struct apcs_cluster_mux, muxdiv);
 	struct apcs_cluster_mux* other = mux == &apcs_c0_clk ? &apcs_c1_clk : &apcs_c0_clk;
+	struct clk_hw *gpll0_hw = clk_hw_get_parent_by_index(hw, 0);
 	unsigned long rate = clk_hw_get_rate(gpll0_hw);
 	unsigned int div;
 
@@ -257,7 +257,6 @@ static int cluster_mux_notifier(struct notifier_block *nb,
 static int apcs_msm8953_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
-	struct clk *gpll0;
 	struct regmap *regmap;
 	struct clk_hw_onecell_data *clk_data;
 	struct clk_regmap *regmap_clks [] = {
@@ -266,12 +265,6 @@ static int apcs_msm8953_probe(struct platform_device *pdev)
 		(struct clk_regmap*) NULL,
 	};
 	struct clk_regmap **rclk = &regmap_clks[0];
-	struct regmap_config config = {
-		.reg_bits	= 32,
-		.reg_stride	= 4,
-		.val_bits	= 32,
-		.fast_io	= true,
-	};
 	struct alpha_pll_config pll_config = {
 		.config_ctl_val		= 0x200d4828,
 		.config_ctl_hi_val	= 0x6,
@@ -283,18 +276,7 @@ static int apcs_msm8953_probe(struct platform_device *pdev)
 		.post_div_val		= BIT(8),
 		.post_div_mask		= GENMASK(9, 8),
 	};
-	void __iomem *base;
 	int ret;
-	struct resource *res;
-
-	gpll0 = devm_clk_get(dev, "gpll0");
-	if (IS_ERR_OR_NULL(gpll0))
-		return -EPROBE_DEFER;
-
-	gpll0_hw = __clk_get_hw(gpll0);
-	if (IS_ERR_OR_NULL(gpll0_hw))
-		return -EINVAL;
-
 	clk_cust_ops.get_parent = clk_regmap_mux_div_ops.get_parent;
 	clk_cust_ops.set_parent = clk_regmap_mux_div_ops.set_parent;
 	clk_cust_ops.set_rate = mux_div_set_rate;
@@ -312,25 +294,11 @@ static int apcs_msm8953_probe(struct platform_device *pdev)
 	//clk_data->hws[CLK_CCI]	= &apcs_cci_clk.clkr.hw;
 	clk_data->hws[CLK_HFPLL]= &apcs_hfpll.clkr.hw;
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res)
-		return -ENOENT;
-
-	base = devm_ioremap(dev, res->start, resource_size(res));
-	if (!base)
-		return -ENOMEM;
-
-	config.max_register = resource_size(res) - 4;
-
-	regmap = devm_regmap_init_mmio(dev, base, &config);
-	if (IS_ERR(regmap))
+	regmap = dev_get_regmap(dev->parent, NULL);
+	if (IS_ERR(regmap)) {
+		dev_err(dev, "failed to get regmap: %ld\n", PTR_ERR(regmap));
 		return PTR_ERR(regmap);
-
-	if (dev_get_regmap(dev, NULL) != regmap) {
-		dev_err(dev, "failed to get regmap: %d\n", ret);
-		return ret;
 	}
-
 
 	for (ret = 0; *rclk && !ret; rclk++) {
 		ret = devm_clk_register_regmap(dev, *rclk);
@@ -368,31 +336,21 @@ static int apcs_msm8953_probe(struct platform_device *pdev)
 	return ret;
 }
 
-static const struct of_device_id apcs_msm8953_match_table[] = {
-	{ .compatible = "qcom,apcs-msm8953" },
-	{},
-};
-
-static struct platform_driver apcs_msm8953_driver = {
+static struct platform_driver qcom_apcs_msm8953_clk_driver = {
 	.probe = apcs_msm8953_probe,
 	.driver = {
 		.name = "qcom-apcs-msm8953-clk",
-		.of_match_table = apcs_msm8953_match_table,
 		.owner = THIS_MODULE,
 	},
 };
-
-static int __init msm_apcs_init(void)
-{
-	return platform_driver_register(&apcs_msm8953_driver);
-}
+module_platform_driver(qcom_apcs_msm8953_clk_driver);
 
 static int __init cpu_clock_pwr_init(void)
 {
 	void __iomem  *base;
 	int regval = 0;
 	struct device_node *ofnode = of_find_compatible_node(NULL, NULL,
-						"qcom,apcs-msm8953");
+						"qcom,msm8953-apcs-kpss-global");
 	if (!ofnode)
 		return 0;
 
@@ -426,5 +384,4 @@ static int __init cpu_clock_pwr_init(void)
 	return 0;
 }
 
-arch_initcall(msm_apcs_init);
 early_initcall(cpu_clock_pwr_init);

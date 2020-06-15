@@ -47,6 +47,7 @@ struct qcom_iommu_dev {
 	struct clk		*bus_clk;
 	void __iomem		*local_base;
 	u32			 sec_id;
+	bool			 smmu_halt;
 	u8			 num_ctxs;
 	struct qcom_iommu_ctx	*ctxs[];   /* indexed by asid-1 */
 };
@@ -848,6 +849,8 @@ static int qcom_iommu_device_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
+	qcom_iommu->smmu_halt = of_property_read_bool(dev->of_node, "qcom,smmu-halt");
+
 	if (!qcom_scm_is_available())
 		return -EPROBE_DEFER;
 
@@ -914,8 +917,14 @@ static int qcom_iommu_device_remove(struct platform_device *pdev)
 static int __maybe_unused qcom_iommu_resume(struct device *dev)
 {
 	struct qcom_iommu_dev *qcom_iommu = dev_get_drvdata(dev);
+	int ret = qcom_iommu_enable_clocks(qcom_iommu);
+	if (ret < 0)
+		return ret;
 
-	return qcom_iommu_enable_clocks(qcom_iommu);
+	if (qcom_iommu->smmu_halt)
+		ret = qcom_scm_restore_sec_cfg(qcom_iommu->sec_id, 0);
+
+	return ret;
 }
 
 static int __maybe_unused qcom_iommu_suspend(struct device *dev)

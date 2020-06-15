@@ -609,6 +609,14 @@ static int qcom_iommu_of_xlate(struct device *dev, struct of_phandle_args *args)
 	return iommu_fwspec_add_ids(dev, &asid, 1);
 }
 
+static bool qcom_iommu_is_attach_deferred(struct iommu_domain *domain,
+					struct device *dev)
+{
+	return dev->of_node &&
+		of_property_read_bool(dev->of_node, "iommu-defer-attach") &&
+		!dev->archdata.iommu;
+}
+
 static const struct iommu_ops qcom_iommu_ops = {
 	.capable	= qcom_iommu_capable,
 	.domain_alloc	= qcom_iommu_domain_alloc,
@@ -625,6 +633,7 @@ static const struct iommu_ops qcom_iommu_ops = {
 	.device_group	= generic_device_group,
 	.of_xlate	= qcom_iommu_of_xlate,
 	.pgsize_bitmap	= SZ_4K | SZ_64K | SZ_1M | SZ_16M,
+	.is_attach_deferred = qcom_iommu_is_attach_deferred,
 };
 
 static int qcom_iommu_enable_clocks(struct qcom_iommu_dev *qcom_iommu)

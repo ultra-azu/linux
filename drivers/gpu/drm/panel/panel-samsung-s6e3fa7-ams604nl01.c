@@ -574,9 +574,10 @@ static int s6e3fa7_ams604nl01_bl_update_status(struct backlight_device *bl)
 		return -EINVAL;
 	}
 
-	if (IS_ERR_OR_NULL(ctx->gamma_ctx))
-		return -EINVAL;
-
+	if (IS_ERR_OR_NULL(ctx->gamma_ctx)) {
+		ctx->brightness = brightness;
+		return 0;
+	}
 
 	elvss_cmd[23] = ctx->elvss_params[0];
 	irc_cmd[1] = ctx->irc_params[0];

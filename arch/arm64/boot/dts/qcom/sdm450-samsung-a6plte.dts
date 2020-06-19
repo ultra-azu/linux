@@ -125,38 +125,56 @@
 		pinctrl-0 = <&tsp_en_default>;
 	};
 
-/*
-	i2c_13: i2c@13 {
+	i2c_10: i2c@10 {
 		compatible = "i2c-gpio";
-		sda-gpios = <&msmgpio 98 0>;
-		scl-gpios = <&msmgpio 99 0>;
+		sda-gpios = <&msmgpio 39 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
+		scl-gpios = <&msmgpio 38 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
 
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		muic: muic-sm5708@25 {
-			status = "okay";
+		sm5708-fuelgauge@71 {
+			compatible = "sm5708-battery,a6plte";
+			reg = <0x71>;
+
+			interrupt-parent = <&msmgpio>;
+			interrupts = <62 IRQ_TYPE_LEVEL_HIGH>;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&sm5708_fg_default>;
+		};
+	};
+
+	i2c_13: i2c@13 {
+		compatible = "i2c-gpio";
+		sda-gpios = <&msmgpio 98 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
+		scl-gpios = <&msmgpio 99 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		muic: muic@25 {
 			compatible = "siliconmitus,sm5708-muic";
 			reg = <0x25>;
+
 			interrupt-parent = <&msmgpio>;
-			interrupts = <63 0>;
+			interrupts = <63 IRQ_TYPE_LEVEL_HIGH>;
+
 			pinctrl-names = "default";
-			pinctrl-0 = <&sm5708_i2c_default &sm5708_interrupt_default &sm5708_rst_default>;
-			//muic,sm5705_switch_gpio = <&msmgpio 45 0>;
+			pinctrl-0 = <&sm5708_muic_default &sm5708_rst_default>;
 		};
 
-		mfd_pmic: sm5708@49 {
-			status = "okay";
+		pmic: sm5708@49 {
 			compatible = "sm,sm5708";
 			reg = <0x49>;
+
 			interrupt-parent = <&msmgpio>;
-			sm5708,irq-gpio = <&msmgpio 60 0x00>;
+			interrupts = <60 IRQ_TYPE_LEVEL_HIGH>;
+
 			pinctrl-names = "default";
 			pinctrl-0 = <&charger_int_active>; // &chg_en_default>;
 		};
 	};
-
-*/
 };
 
 &framebuffer {
@@ -244,24 +262,25 @@
 };
 
 &msmgpio {
-	sm5708_i2c_default: sm5708_muic_default {
+	sm5708_fg_default: sm5708_fg_default {
 		pinmux {
-			pins = "gpio98", "gpio99";
+			pins = "gpio38", "gpio39", "gpio62";
 			function = "gpio";
 		};
+
 		pinconf {
-			pins = "gpio98", "gpio99";
+			pins = "gpio38", "gpio39", "gpio62";
 			drive-strength = <2>;
 			bias-disable;
 		};
 	};
-	sm5708_interrupt_default: sm5708_interrupt_default {
+	sm5708_muic_default: sm5708_muic_default {
 		pinmux {
-			pins = "gpio63";
+			pins = "gpio98", "gpio99", "gpio63";
 			function = "gpio";
 		};
 		pinconf {
-			pins = "gpio63";
+			pins = "gpio98", "gpio99", "gpio63";
 			drive-strength = <2>;
 			bias-disable;
 		};
@@ -411,6 +430,7 @@
 
 &usb3 {
 	status = "okay";
+
 	//extcon = <&muic>, <&muic>;
 };
 
@@ -418,7 +438,6 @@
 	status = "okay";
 
 	dr_mode = "peripheral";
-	//extcon = <&muic>, <&muic>;
 };
 
 &hsusb_phy {

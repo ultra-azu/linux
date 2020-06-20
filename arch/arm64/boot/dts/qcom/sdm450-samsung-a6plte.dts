@@ -165,7 +165,7 @@
 		};
 
 		pmic: sm5708@49 {
-			compatible = "sm,sm5708";
+			compatible = "siliconmitus,sm5708";
 			reg = <0x49>;
 
 			interrupt-parent = <&msmgpio>;
@@ -430,14 +430,13 @@
 
 &usb3 {
 	status = "okay";
-
-	//extcon = <&muic>, <&muic>;
+	extcon = <&muic>, <&muic>;
 };
 
 &usb3_dwc3 {
 	status = "okay";
-
-	dr_mode = "peripheral";
+	extcon = <&muic>, <&muic>;
+	dr_mode = "otg";
 };
 
 &hsusb_phy {

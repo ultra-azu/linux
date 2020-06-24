@@ -266,6 +266,7 @@ struct qusb2_phy_cfg {
 	unsigned int mask_core_ready;
 	unsigned int disable_ctrl;
 	unsigned int autoresume_en;
+	unsigned int num_vregs;
 
 	/* true if PHY has PLL_TEST register to select clk_scheme */
 	bool has_pll_test;
@@ -294,6 +295,7 @@ static const struct qusb2_phy_cfg msm8953_phy_cfg = {
 	.regs		= msm8953_regs_layout,
 
 	.has_pll_test	= true,
+	.num_vregs	= 3,
 	.disable_ctrl	= (CLAMP_N_EN | FREEZIO_N | POWER_DOWN),
 	.mask_core_ready = PLL_LOCKED,
 	.autoresume_en	 = BIT(3),
@@ -325,7 +327,7 @@ static const struct qusb2_phy_cfg qusb2_v2_phy_cfg = {
 };
 
 static const char * const qusb2_phy_vreg_names[] = {
-	"vdda-pll", "vdda-phy-dpdm",
+	"vdda-pll", "vdda-phy-dpdm", "phy",
 };
 
 #define QUSB2_NUM_VREGS		ARRAY_SIZE(qusb2_phy_vreg_names)
@@ -396,6 +398,7 @@ struct qusb2_phy {
 	struct override_params overrides;
 
 	const struct qusb2_phy_cfg *cfg;
+	unsigned int num_vregs;
 	bool has_se_clk_scheme;
 	bool phy_initialized;
 	enum phy_mode mode;
@@ -684,9 +687,11 @@ static int qusb2_phy_init(struct phy *phy)
 	dev_vdbg(&phy->dev, "%s(): Initializing QUSB2 phy\n", __func__);
 
 	/* turn on regulator supplies */
-	ret = regulator_bulk_enable(ARRAY_SIZE(qphy->vregs), qphy->vregs);
+	ret = regulator_bulk_enable(qphy->num_vregs, qphy->vregs);
 	if (ret)
 		return ret;
+
+	usleep_range(1000, 1500);
 
 	ret = clk_prepare_enable(qphy->iface_clk);
 	if (ret) {
@@ -814,7 +819,7 @@ disable_ahb_clk:
 disable_iface_clk:
 	clk_disable_unprepare(qphy->iface_clk);
 poweroff_phy:
-	regulator_bulk_disable(ARRAY_SIZE(qphy->vregs), qphy->vregs);
+	regulator_bulk_disable(qphy->num_vregs, qphy->vregs);
 
 	return ret;
 }
@@ -835,7 +840,7 @@ static int qusb2_phy_exit(struct phy *phy)
 	clk_disable_unprepare(qphy->cfg_ahb_clk);
 	clk_disable_unprepare(qphy->iface_clk);
 
-	regulator_bulk_disable(ARRAY_SIZE(qphy->vregs), qphy->vregs);
+	regulator_bulk_disable(qphy->num_vregs, qphy->vregs);
 
 	qphy->phy_initialized = false;
 
@@ -927,7 +932,10 @@ static int qusb2_phy_probe(struct platform_device *pdev)
 		return PTR_ERR(qphy->phy_reset);
 	}
 
-	num = ARRAY_SIZE(qphy->vregs);
+	/* Get the specific init parameters of QMP phy */
+	qphy->cfg = of_device_get_match_data(dev);
+
+	num = qphy->num_vregs = qphy->cfg->num_vregs ?: 2;
 	for (i = 0; i < num; i++)
 		qphy->vregs[i].supply = qusb2_phy_vreg_names[i];
 
@@ -938,9 +946,6 @@ static int qusb2_phy_probe(struct platform_device *pdev)
 				ret);
 		return ret;
 	}
-
-	/* Get the specific init parameters of QMP phy */
-	qphy->cfg = of_device_get_match_data(dev);
 
 	qphy->tcsr = syscon_regmap_lookup_by_phandle(dev->of_node,
 							"qcom,tcsr-syscon");

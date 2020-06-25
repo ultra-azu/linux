@@ -862,39 +862,21 @@
 			};
 		};
 
-		gfxpd: power-controller@0185f000 {
-			compatible = "qcom,msm8953-gfxpd";
-			reg = <0x0185f000 0x30>, <0xa4000 0x1000>;
-			reg-names = "ldo_addr", "efuse_addr";
-
+		gfxpd: power-controller {
+			compatible = "qcom-gfxpd";
 			#power-domain-cells = <0>;
 			operating-points-v2 = <&gfxpd_opp>;
 
-			power-domains = <&rpmpd MSM8953_VDDCX>, <&gcc OXILI_GX_GDSC>;
-			power-domain-names = "vddcx", "gdsc_gx";
-
-			mem-acc-supply = <&gfx_mem_acc>;
+			power-domains = <&rpmpd MSM8953_VDDCX>,
+					<&gcc OXILI_CX_GDSC>,
+					<&gcc OXILI_GX_GDSC>;
+			power-domain-names = "vdd_cx", "gdsc_cx", "gdsc_gx";
 
 			gfxpd_opp: gfxpd-opp-table {
 				compatible = "operating-points-v2";
 
-				gfxpd_low_svs: opp1 {
+				nominal {
 					opp-level = <1>;
-				};
-				gfxpd_svs: opp2 {
-					opp-level = <2>;
-				};
-				gfxpd_svs_plus: opp3 {
-					opp-level = <3>;
-				};
-				gfxpd_nom: opp4 {
-					opp-level = <4>;
-				};
-				gfxpd_nom_plus: opp5 {
-					opp-level = <5>;
-				};
-				gfxpd_turbo: opp6 {
-					opp-level = <6>;
 				};
 			};
 
@@ -933,32 +915,32 @@
 
 				opp-100000000 {
 					opp-hz = /bits/ 64 <100000000>;
-					required-opps = <&gfxpd_low_svs>;
+					opp-level = <RPM_SMD_LEVEL_LOW_SVS>;
 					opp-supported-hw = <0xFF>;
 				};
 				opp-200000000 {
 					opp-hz = /bits/ 64 <200000000>;
-					required-opps = <&gfxpd_svs>;
+					opp-level = <RPM_SMD_LEVEL_SVS>;
 					opp-supported-hw = <0xFF>;
 				};
 				opp-320000000 {
 					opp-hz = /bits/ 64 <320000000>;
-					required-opps = <&gfxpd_svs_plus>;
+					opp-level = <RPM_SMD_LEVEL_SVS_PLUS>;
 					opp-supported-hw = <0xFF>;
 				};
 				opp-400000000 {
 					opp-hz = /bits/ 64 <400000000>;
-					required-opps = <&gfxpd_nom>;
+					opp-level = <RPM_SMD_LEVEL_NOM>;
 					opp-supported-hw = <0xFF>;
 				};
 				opp-460800000 {
 					opp-hz = /bits/ 64 <460800000>;
-					required-opps = <&gfxpd_nom_plus>;
+					opp-level = <RPM_SMD_LEVEL_NOM_PLUS>;
 					opp-supported-hw = <0xFF>;
 				};
 				opp-533333000 {
 					opp-hz = /bits/ 64 <533333000>;
-					required-opps = <&gfxpd_turbo>;
+					opp-level = <RPM_SMD_LEVEL_TURBO>;
 					opp-supported-hw = <0xFF>;
 				};
 			};
@@ -1103,7 +1085,7 @@
 			assigned-clock-rates = <19200000>;
 
 			resets = <&gcc GCC_USB3_PHY_BCR>,
-				<&gcc GCC_USB3PHY_PHY_BCR>;
+				 <&gcc GCC_USB3PHY_PHY_BCR>;
 			reset-names = "phy", "common";
 			status = "disabled";
 

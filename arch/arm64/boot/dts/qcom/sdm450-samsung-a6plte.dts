@@ -431,12 +431,15 @@
 &usb3 {
 	status = "okay";
 	extcon = <&muic>, <&muic>;
+	qcom,select-utmi-as-pipe-clk;
 };
 
 &usb3_dwc3 {
 	status = "okay";
 	extcon = <&muic>, <&muic>;
 	dr_mode = "otg";
+	phys = <&hsusb_phy>;
+	phy-names = "usb2-phy";
 };
 
 &hsusb_phy {
@@ -445,13 +448,6 @@
 	phy-supply = <&pm8953_l3>;
 	vdda-pll-supply = <&pm8953_l7>;
 	vdda-phy-dpdm-supply = <&pm8953_l13>;
-};
-
-&ssusb_phy {
-	status = "okay";
-
-	vdda-phy-supply = <&pm8953_l3>;
-	vdda-pll-supply = <&pm8953_l7>;
 };
 
 &smd_rpm_regulators {

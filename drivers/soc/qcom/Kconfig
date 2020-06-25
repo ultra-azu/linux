@@ -209,13 +209,9 @@ config QCOM_APR
 	  ASM, ADM and AFE modules.
 
 config QCOM_GFXPD
-	tristate "Qualcomm Graphics core power driver"
+	tristate "Qualcomm Graphics core power domain"
 	depends on ARCH_QCOM 
 	help
-	  This driver supports the MSM GFX (Graphics) LDO regulator. The
-	  GFU core is either powered by an internal MSM LDO or by BHS.
-	  Typically the lower voltage corners are powered by LDO and
-	  the higher ones by BHS. This driver allows for configuration of
-	  the rail between the LDO/BHS as well as the LDO voltage.
+	  This is helper driver which wraps multiple power domains into one.
 
 endmenu

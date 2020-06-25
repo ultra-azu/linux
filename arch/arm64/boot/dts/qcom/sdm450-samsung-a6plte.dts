@@ -61,11 +61,6 @@
 			pmsg-size = <0x10000>;
 		};
 
-		venus_mem: venus_region@82000000 {
-			no-map;
-			reg = <0x0 0x82000000 0x0 0x500000>;
-		};
-
 		adsp_fw_mem: adsp_fw_region@8d600000 {
 			reg = <0x0 0x8d600000 0x0 0x1800000>;
 		};

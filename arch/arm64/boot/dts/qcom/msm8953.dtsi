@@ -11,6 +11,8 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
+	compatible = "qcom,msm8953";
+
 	aliases {
 		display0 = &mdss;
 	};
@@ -145,192 +147,39 @@
 			};
 		};
 
-		CPU0: cpu@0 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			reg = <0x0>;
-			enable-method = "psci";
-			next-level-cache = <&L2_0>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 0>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu0_opp_table>;
+#define CPU(number, cluster, value)				    \
+		CPU##number: cpu@number {			    \
+			device_type = "cpu";			    \
+			compatible = "arm,cortex-a53";		    \
+			reg = <value>;				    \
+			enable-method = "psci";			    \
+			next-level-cache = <&L2_##cluster>;	    \
+			#cooling-cells = <2>;			    \
+			cpu-supply = <&pm8953_s5>;		    \
+			clocks = <&apcs cluster>;		    \
+			clock-names = "cpu";			    \
+			operating-points-v2 = <&cpu##cluster##_opp>;\
+			l1-icache { compatible = "cache"; };	    \
+			l1-dcache { compatible = "cache"; };	    \
+		}
 
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
-
-		CPU1: cpu@1 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x1>;
-			next-level-cache = <&L2_0>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 0>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu0_opp_table>;
-
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
-
-		CPU2: cpu@2 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x2>;
-			next-level-cache = <&L2_0>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 0>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu0_opp_table>;
-
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
-
-		CPU3: cpu@3 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x3>;
-			next-level-cache = <&L2_0>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 0>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu0_opp_table>;
-
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
-
-		CPU4: cpu@100 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x100>;
-			next-level-cache = <&L2_1>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 1>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu1_opp_table>;
-
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
-
-		CPU5: cpu@101 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x101>;
-			next-level-cache = <&L2_1>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 1>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu1_opp_table>;
-
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
-
-		CPU6: cpu@102 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x102>;
-			next-level-cache = <&L2_1>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 1>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu1_opp_table>;
-
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
-
-		CPU7: cpu@103 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x103>;
-			next-level-cache = <&L2_1>;
-			#cooling-cells = <2>;
-			clocks = <&apcs 1>;
-			clock-names = "cpu";
-			operating-points-v2 = <&cpu1_opp_table>;
-
-			l1-icache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x8800>;
-			};
-
-			l1-dcache {
-				compatible = "arm,arch-cache";
-				qcom,dump-size = <0x9000>;
-			};
-		};
+		CPU(0, 0, 0x000);
+		CPU(1, 0, 0x001);
+		CPU(2, 0, 0x002);
+		CPU(3, 0, 0x003);
+		CPU(4, 1, 0x100);
+		CPU(5, 1, 0x101);
+		CPU(6, 1, 0x102);
+		CPU(7, 1, 0x103);
 
 		L2_0: l2-cache_0 {
-			compatible = "arm,arch-cache";
+			compatible = "cache";
 			cache-level = <2>;
-			qcom,dump-size = <0>;
 		};
 
 		L2_1: l2-cache_1 {
-			compatible = "arm,arch-cache";
+			compatible = "cache";
 			cache-level = <2>;
-			qcom,dump-size = <0>;
 		};
 	};
 
@@ -344,8 +193,87 @@
 		interrupts = <GIC_PPI 7 (GIC_CPU_MASK_SIMPLE(8)| IRQ_TYPE_LEVEL_HIGH)>;
 	};
 
-	cpu0_opp_table: cpu0-opp-table { };
-	cpu1_opp_table: cpu1-opp-table { };
+	cpu0_opp: cpu0-opp-table {
+		// Speed bin	    SoC
+		// 2		    SDM625
+		// 6		    SDM450
+		// opp-supported-hw is bitmask of 1 << speed_bin 
+		// compatible of / node has to be "qcom,msm8953"
+		compatible = "operating-points-v2-qcom-cpu";
+		nvmem-cells = <&cpu_speed_bin>;
+
+		opp-shared;
+
+		opp-399999000 {
+			opp-hz = /bits/ 64 <399999000>;
+			opp-microvolt = <600000 600000 900000>;
+			opp-supported-hw = <0xff>;
+		};
+		opp-799999000 {
+			opp-hz = /bits/ 64 <799999000>;
+			opp-microvolt = <680000 680000 900000>;
+			opp-supported-hw = <0xff>;
+			opp-suspend;
+		};
+		opp-1190400000 {
+			opp-hz = /bits/ 64 <1190400000>;
+			opp-microvolt = <750000 750000 900000>;
+			opp-supported-hw = <0x40>;
+		};
+		opp-1344000000 {
+			opp-hz = /bits/ 64 <1344000000>;
+			opp-microvolt = <805000 805000 915000>;
+			opp-supported-hw = <0x04>;
+		};
+		opp-1785600000 {
+			opp-hz = /bits/ 64 <1785600000>;
+			opp-microvolt = <820000 820000 900000>;
+			opp-supported-hw = <0x40>;
+		};
+		opp-2016000000 {
+			opp-hz = /bits/ 64 <2016000000>;
+			opp-microvolt = <850000 850000 915000>;
+			opp-supported-hw = <0x04>;
+		};
+	};
+
+	cpu1_opp: cpu1-opp-table {
+		compatible = "operating-points-v2-qcom-cpu";
+
+		opp-shared;
+
+		opp-399999000 {
+			opp-hz = /bits/ 64 <399999000>;
+			opp-microvolt = <600000 600000 900000>;
+			opp-supported-hw = <0xff>;
+		};
+		opp-799999000 {
+			opp-hz = /bits/ 64 <799999000>;
+			opp-microvolt = <680000 680000 900000>;
+			opp-supported-hw = <0xff>;
+			opp-suspend;
+		};
+		opp-1190400000 {
+			opp-hz = /bits/ 64 <1190400000>;
+			opp-microvolt = <750000 750000 900000>;
+			opp-supported-hw = <0x40>;
+		};
+		opp-1344000000 {
+			opp-hz = /bits/ 64 <1344000000>;
+			opp-microvolt = <805000 805000 915000>;
+			opp-supported-hw = <0x04>;
+		};
+		opp-1785600000 {
+			opp-hz = /bits/ 64 <1785600000>;
+			opp-microvolt = <820000 820000 900000>;
+			opp-supported-hw = <0x40>;
+		};
+		opp-2016000000 {
+			opp-hz = /bits/ 64 <2016000000>;
+			opp-microvolt = <850000 850000 915000>;
+			opp-supported-hw = <0x04>;
+		};
+	};
 
 	timer {
 		compatible = "arm,armv8-timer";
@@ -641,7 +569,7 @@
 				interrupts = <GIC_SPI 233 IRQ_TYPE_LEVEL_HIGH>;
 			};
 		};
-/*
+
 		rng@22000 {
 			compatible = "qcom,prng";
 			reg = <0x000e3000 0x1000>;
@@ -649,17 +577,16 @@
 			clock-names = "core";
 		};
 
-		qfprom: qfprom@a4000 {
+		qfprom@a4124 {
 			compatible = "qcom,qfprom";
-			reg = <0xa4000 0x1000>;
+			reg = <0xa4124 0x4>;
 			#address-cells = <1>;
 			#size-cells = <1>;
-			cpu_speed_bin: cpu_speed_bin@124 {
-				reg = <0x124 0x4>;
-				bits = <8 3>;
+			cpu_speed_bin: cpu_speed_bin@1 {
+				reg = <1 1>;
+				bits = <0 3>;
 			};
 		};
-*/
 
 		mdss: mdss@1a00000 {
 			compatible = "qcom,mdss";

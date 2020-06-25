@@ -13,12 +13,11 @@
 
 #include "msm8953.dtsi"
 #include "pm8953.dtsi"
-#include "sdm450.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 
 / {
 	model = "Samsung A6-Plus LTE Rev.4";
-	compatible = "samsung,a6plus", "qcom,sdm450";
+	qcom,msm-id = <338 0>;
 	qcom,board-id = <8 4>;
 
 	reserved-memory {

@@ -261,7 +261,8 @@
 	vmmc-supply = <&pm8953_l11>;
 	vqmmc-supply = <&pm8953_l12>;
 
-	cd-gpios = <&msmgpio 133 GPIO_ACTIVE_HIGH>;
+	// cd-gpios = <&msmgpio 133 GPIO_ACTIVE_HIGH>;
+	/* FIXME: triggers eject during modem initialization */
 
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&sdc2_clk_on &sdc2_cmd_on &sdc2_data_on &sdc2_cd_off>;

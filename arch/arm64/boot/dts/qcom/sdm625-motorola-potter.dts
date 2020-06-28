@@ -23,7 +23,7 @@
 	qcom,board-id = <0x46 0x83a0>;
 
 	chosen {
-		bootargs = "clk_ignore_unused";
+		bootargs = "console=null";
 	};
 
 	reserved-memory {

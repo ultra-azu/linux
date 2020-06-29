@@ -134,6 +134,8 @@
 			interrupt-parent = <&msmgpio>;
 			interrupts = <62 IRQ_TYPE_LEVEL_HIGH>;
 
+			power-supplies = <&charger>;
+
 			pinctrl-names = "default";
 			pinctrl-0 = <&sm5708_fg_default>;
 		};
@@ -166,7 +168,21 @@
 			interrupts = <60 IRQ_TYPE_LEVEL_HIGH>;
 
 			pinctrl-names = "default";
-			pinctrl-0 = <&charger_int_active>; // &chg_en_default>;
+			pinctrl-0 = <&charger_int_active>;
+
+			charger: sm5708-charger {
+				compatible = "siliconmitus,sm5708-charger";
+				float-voltage = <4350>;
+				input-current = <1500>;
+				charge-current = <1800>;
+
+				extcon = <&muic>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&chg_en_default>;
+
+				enable-gpios = <&msmgpio 34 GPIO_ACTIVE_HIGH>;
+			};
 		};
 	};
 };

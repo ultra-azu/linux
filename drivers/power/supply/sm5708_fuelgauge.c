@@ -190,7 +190,6 @@ struct sm5708_battery {
 	int last_temp;
 	int prev_voltage;
 	int iocv_error_count;
-	int fg_irq;
 };
 
 static enum power_supply_property sm5708_battery_properties[] = {
@@ -604,12 +603,7 @@ static bool sm5708_battery_init(struct sm5708_battery *bat, bool is_surge)
 {
 	int ret;
 
-	/* SM5708 i2c read check */
 	ret = sm5708_get_device_id(bat);
-
-	if (ret < 0) {
-		pr_info("%s: fail to do i2c read(%d)\n", __func__, ret);
-	}
 
 	dev_info(bat->dev, "Device ID %x\n", ret);
 
@@ -657,7 +651,6 @@ static int sm5708_battery_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_VOLTAGE_OCV:
 		val->intval = sm5708_get_ocv(bat);
 		break;
-
 	case POWER_SUPPLY_PROP_CYCLE_COUNT:
 		val->intval = sm5708_get_soc_cycle(bat);
 		break;
@@ -687,16 +680,17 @@ static int sm5708_battery_get_property(struct power_supply *psy,
 		val->intval = bat->data->capacity * 10 * sm5708_get_soc(bat);
 		break;
 	case POWER_SUPPLY_PROP_STATUS:
-		curr= sm5708_get_curr(bat);
-
-		if (curr > 10000)
-			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-		else if (curr < 1000)
+		curr = sm5708_get_curr(bat);
+		if (power_supply_am_i_supplied(psy)) {
+			if (sm5708_get_soc(bat) > 95)
+				val->intval = POWER_SUPPLY_STATUS_FULL;
+			else if (curr > 5000)
+				val->intval = POWER_SUPPLY_STATUS_CHARGING;
+			else
+				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+		} else {
 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
-		else if (sm5708_get_soc(bat) > 95)
-			val->intval = POWER_SUPPLY_STATUS_FULL;
-		else
-			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+		}
 		break;
 	default:
 		return -EINVAL;
@@ -723,8 +717,7 @@ static int sm5708_battery_probe(struct i2c_client *client, const struct i2c_devi
 {
 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
 	struct sm5708_battery *battery;
-	int ret = 0;
-	struct power_supply_config psy_config = {};
+	struct power_supply_config psy_config = { 0 };
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
 		return -EIO;
@@ -742,28 +735,16 @@ static int sm5708_battery_probe(struct i2c_client *client, const struct i2c_devi
 			&sm5708_battery_regmap_config);
 	battery->data = (struct sm5708_battery_data*) of_device_get_match_data(battery->dev);
 
-	if (0) {
-		int reg;
-		for (reg = 0; reg < 0x100; reg ++) {
-			u32 regval;
-			regmap_read(battery->regmap, reg, &regval);
-			printk("SM5708FG [0x%x] = 0x%x\n", reg, regval);
-		}
-	}
-
 	if (!sm5708_battery_init(battery, false)) {
-		dev_err(&client->dev,
-			"%s: Failed to Initialize battery\n", __func__);
+		dev_err(&client->dev, "Failed to Initialize battery\n");
 		return -EINVAL;
 	}
 
-	battery->psy = power_supply_register(&client->dev,
+	battery->psy = devm_power_supply_register(&client->dev,
 			&sm5708_battery_desc, &psy_config);
-	if (IS_ERR(battery->psy)) {
-		dev_err(&client->dev,
-			"%s: Failed to Register psy_fg\n", __func__);
-		return ret;
-	}
+	if (IS_ERR(battery->psy))
+		return PTR_ERR(battery->psy);
+
 	return 0;
 }
 

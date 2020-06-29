@@ -343,6 +343,10 @@ static int sm5502_muic_set_path(struct sm5502_muic_info *info,
 		return -EINVAL;
 	}
 
+	// SM5708 Doesn't have vbus switch
+	if (info->type == TYPE_SM5708)
+		return 0;
+
 	switch (vbus_sw) {
 	case VBUSIN_SWITCH_OPEN:
 	case VBUSIN_SWITCH_VBUSOUT:

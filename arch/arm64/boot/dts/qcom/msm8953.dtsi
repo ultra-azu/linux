@@ -5,6 +5,61 @@
 #include <dt-bindings/clock/qcom,gcc-msm8953.h>
 #include <dt-bindings/clock/qcom,rpmcc.h>
 #include <dt-bindings/power/qcom-rpmpd.h>
+#include <dt-bindings/thermal/thermal.h>
+
+#define CPU(number, cluster, value)			\
+	CPU##number: cpu@number {			\
+		device_type = "cpu";			\
+		compatible = "arm,cortex-a53";		\
+		reg = <value>;				\
+		enable-method = "psci";			\
+		next-level-cache = <&L2_##cluster>;	\
+		#cooling-cells = <2>;			\
+		cpu-supply = <&pm8953_s5>;		\
+		clocks = <&apcs cluster>;		\
+		clock-names = "cpu";			\
+		operating-points-v2 = <&cpu##cluster##_opp>;\
+		l1-icache { compatible = "cache"; };	\
+		l1-dcache { compatible = "cache"; };	\
+	}
+
+#define GPU_OPP(freq_khz, lvl, supp)			\
+	opp-##freq_khz##000 {				\
+		opp-hz = /bits/ 64 <freq_khz##000>;	\
+		opp-level = <lvl>;			\
+		opp-supported-hw = <supp>;		\
+	}
+
+#define COMMON_THERMAL(n, s)				\
+	polling-delay-passive = <250>;			\
+	polling-delay = <1000>;				\
+	thermal-sensors = <&tsens0 s>;			\
+	trips {						\
+		n##_alert: trip-point@0 {		\
+			temperature = <80000>;		\
+			hysteresis = <2000>;		\
+			type = "passive";		\
+		};					\
+		n##_crit: crit {			\
+			temperature = <100000>;		\
+			hysteresis = <2000>;		\
+			type = "critical";		\
+		};					\
+	}
+
+#define CPU_THERMAL(c, s, d1, d2, d3, d4)		\
+	cpu##c##-thermal {				\
+		COMMON_THERMAL(cpu##c, s);		\
+		cooling-maps {				\
+			map0 {				\
+				trip = <&cpu##c##_alert>; \
+				cooling-device = <&CPU##d1 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,  \
+						 <&CPU##d2 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,  \
+						 <&CPU##d3 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,  \
+						 <&CPU##d4 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;	\
+			};				\
+		};					\
+	}
 
 / {
 	interrupt-parent = <&intc>;
@@ -152,22 +207,6 @@
 			};
 		};
 
-#define CPU(number, cluster, value)				    \
-		CPU##number: cpu@number {			    \
-			device_type = "cpu";			    \
-			compatible = "arm,cortex-a53";		    \
-			reg = <value>;				    \
-			enable-method = "psci";			    \
-			next-level-cache = <&L2_##cluster>;	    \
-			#cooling-cells = <2>;			    \
-			cpu-supply = <&pm8953_s5>;		    \
-			clocks = <&apcs cluster>;		    \
-			clock-names = "cpu";			    \
-			operating-points-v2 = <&cpu##cluster##_opp>;\
-			l1-icache { compatible = "cache"; };	    \
-			l1-dcache { compatible = "cache"; };	    \
-		}
-
 		CPU(0, 0, 0x000);
 		CPU(1, 0, 0x001);
 		CPU(2, 0, 0x002);
@@ -202,7 +241,7 @@
 		// Speed bin	    SoC
 		// 2		    SDM625
 		// 6		    SDM450
-		// opp-supported-hw is bitmask of 1 << speed_bin 
+		// opp-supported-hw is bitmask of 1 << speed_bin
 		// compatible of / node has to be "qcom,msm8953"
 		compatible = "operating-points-v2-qcom-cpu";
 		nvmem-cells = <&cpu_speed_bin>;
@@ -851,36 +890,12 @@
 			gpu_opp_table: opp-table {
 				compatible  ="operating-points-v2";
 
-				opp-100000000 {
-					opp-hz = /bits/ 64 <100000000>;
-					opp-level = <RPM_SMD_LEVEL_LOW_SVS>;
-					opp-supported-hw = <0xFF>;
-				};
-				opp-200000000 {
-					opp-hz = /bits/ 64 <200000000>;
-					opp-level = <RPM_SMD_LEVEL_SVS>;
-					opp-supported-hw = <0xFF>;
-				};
-				opp-320000000 {
-					opp-hz = /bits/ 64 <320000000>;
-					opp-level = <RPM_SMD_LEVEL_SVS_PLUS>;
-					opp-supported-hw = <0xFF>;
-				};
-				opp-400000000 {
-					opp-hz = /bits/ 64 <400000000>;
-					opp-level = <RPM_SMD_LEVEL_NOM>;
-					opp-supported-hw = <0xFF>;
-				};
-				opp-460800000 {
-					opp-hz = /bits/ 64 <460800000>;
-					opp-level = <RPM_SMD_LEVEL_NOM_PLUS>;
-					opp-supported-hw = <0xFF>;
-				};
-				opp-533333000 {
-					opp-hz = /bits/ 64 <533333000>;
-					opp-level = <RPM_SMD_LEVEL_TURBO>;
-					opp-supported-hw = <0xFF>;
-				};
+				GPU_OPP(128000, RPM_SMD_LEVEL_LOW_SVS, 0xff);
+				GPU_OPP(230400, RPM_SMD_LEVEL_SVS, 0xff);
+				GPU_OPP(384000, RPM_SMD_LEVEL_SVS_PLUS, 0xff);
+				GPU_OPP(460800, RPM_SMD_LEVEL_NOM, 0xff);
+				GPU_OPP(576000, RPM_SMD_LEVEL_NOM_PLUS, 0xff);
+				GPU_OPP(652800, RPM_SMD_LEVEL_TURBO, 0xff);
 			};
 
 			zap-shader {
@@ -893,7 +908,7 @@
 			compatible = "qcom,msm8953-tsens", "qcom,tsens-v2";
 			reg = <0x004a9000 0x1000>, /* TM */
 			      <0x004a8000 0x1000>; /* SROT */
-			#qcom,sensors = <15>;
+			#qcom,sensors = <16>;
 			interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 314 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow", "critical";
@@ -1427,65 +1442,16 @@
 	};
 
 	thermal-zones {
-		cpu0-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 9>;
-
-		};
-		cpu1-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 10>;
-
-		};
-		cpu2-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 11>;
-
-		};
-		cpu3-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 12>;
-		};
-		cpu4-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 4>;
-
-		};
-		cpu5-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 5>;
-
-		};
-		cpu6-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 6>;
-
-		};
-		cpu7-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 7>;
-		};
-		gpu-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-
-			thermal-sensors = <&tsens0 15>;
+		CPU_THERMAL(0,  9, 0, 1, 2, 3);
+		CPU_THERMAL(1, 10, 0, 1, 2, 3);
+		CPU_THERMAL(2, 11, 0, 1, 2, 3);
+		CPU_THERMAL(3, 12, 0, 1, 2, 3);
+		CPU_THERMAL(4,  4, 4, 5, 6, 7);
+		CPU_THERMAL(5,  5, 4, 5, 6, 7);
+		CPU_THERMAL(6,  6, 4, 5, 6, 7);
+		CPU_THERMAL(7,  7, 4, 5, 6, 7);
+		gpu_thermal {
+			COMMON_THERMAL(gpu, 15);
 		};
 	};
 };

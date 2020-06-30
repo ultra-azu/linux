@@ -13,6 +13,7 @@
 
 #include <linux/bitops.h>
 #include <linux/clk-provider.h>
+#include <linux/clk.h>
 #include <linux/err.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -44,6 +45,7 @@ enum {
 	P_XO,
 	P_GPLL0,
 	P_GPLL2,
+	P_GPLL3,
 	P_GPLL4,
 	P_GPLL6,
 	P_GPLL0_DIV2,
@@ -185,6 +187,25 @@ DEFNAMES(xo_dsi1pllbyte_dsi0pllbyte) {
 	"dsi1pllbyte",
 	"dsi0pllbyte"
 };
+
+DEFMAP(gfx3d) {
+	{ P_XO, 0 },
+	{ P_GPLL0, 1 },
+	{ P_GPLL3, 2 },
+	{ P_GPLL4, 4 },
+	{ P_GPLL0_DIV2_MM, 5 },
+	{ P_GPLL6_DIV2_GFX, 6 },
+};
+
+DEFNAMES(gfx3d) {
+	"xo",
+	"gpll0",
+	"gpll3",
+	"gpll4",
+	"gpll0_early_div",
+	"gpll6_early_div",
+};
+
 
 static struct clk_fixed_factor xo = {
 	.mult = 1,
@@ -424,12 +445,12 @@ static struct freq_tbl ftbl_vfe0_clk_src[] = {
 
 static struct freq_tbl ftbl_gfx3d_clk_src[] = {
 	F(19200000, P_XO, 1, 0, 0),
-	F(100000000, P_GPLL0_DIV2_MM, 4, 0, 0),
-	F(200000000, P_GPLL0_DIV2_MM, 2, 0, 0),
-	F(320000000, P_GPLL0, 2.5, 0, 0),
-	F(400000000, P_GPLL0, 2, 0, 0),
+	F(128000000, P_GPLL4, 9, 0, 0),
+	F(230400000, P_GPLL4, 5, 0, 0),
+	F(384000000, P_GPLL4, 3, 0, 0),
 	F(460800000, P_GPLL4, 2.5, 0, 0),
-	F(533333000, P_GPLL0, 1.5, 0, 0),
+	F(576000000, P_GPLL4, 2, 0, 0),
+	F(652800000, P_GPLL3, 2, 0, 0),
 	{ }
 };
 
@@ -756,7 +777,7 @@ RCG(apss_ahb_clk_src,            clk_rcg2_ops, 0x46000, xo_g0_g4_g0d,           
 RCG(csi1_clk_src,                clk_rcg2_ops, 0x4F020, g0_g0d_g2,                0,   5, ftbl_csi1_clk_src, 0);
 RCG(csi2_clk_src,                clk_rcg2_ops, 0x3C020, g0_g0d_g2,                0,   5, ftbl_csi2_clk_src, 0);
 RCG(vfe0_clk_src,                clk_rcg2_ops, 0x58000, g0_g0d_g2_g0d,            0,   5, ftbl_vfe0_clk_src, 0);
-RCG(gfx3d_clk_src,               clk_rcg2_ops, 0x59000, xo_g0_g6d_g0d_g4_g0d_g6d, 0,   5, ftbl_gfx3d_clk_src, 0);
+RCG(gfx3d_clk_src,               clk_rcg2_ops, 0x59000, gfx3d,                    0,   5, ftbl_gfx3d_clk_src, 0);
 RCG(vcodec0_clk_src,             clk_rcg2_ops, 0x4C000, g0_g6_g2_g0d_g6d,         16,  5, ftbl_vcodec0_clk_src, 0);
 RCG(cpp_clk_src,                 clk_rcg2_ops, 0x58018, g0_g0d_g2_g0d,            0,   5, ftbl_cpp_clk_src, 0);
 RCG(jpeg0_clk_src,               clk_rcg2_ops, 0x57000, g0_g0d_g2,                0,   5, ftbl_jpeg0_clk_src, 0);
@@ -1006,10 +1027,12 @@ static struct gdsc vfe_gdsc = {
 
 static struct gdsc oxili_gx_gdsc = {
 	.gdscr = 0x5901c,
+	.clamp_io_ctrl = 0x5b00c,
 	.pd = {
 		.name = "oxili_gx",
 	},
 	.pwrsts = PWRSTS_OFF_ON,
+	.flags = CLAMP_IO,
 };
 
 static struct gdsc oxili_cx_gdsc = {
@@ -1586,16 +1609,7 @@ static int gcc_msm8953_probe(struct platform_device *pdev)
 		}
 	}
 #endif
-	{
-#define GX_DOMAIN_MISC	0x5B00C
-		void __iomem *base = ioremap(0x1800000, 0x80000);
-		u32 regval;
-		regval = readl_relaxed(base + GX_DOMAIN_MISC);
-		regval &= ~BIT(0);
-		writel_relaxed(regval, base + GX_DOMAIN_MISC);
-		iounmap(base);
-
-	}
+	clk_set_rate(gpll3_early.clkr.hw.clk, 68*19200000);
 	return ret;
 }
 

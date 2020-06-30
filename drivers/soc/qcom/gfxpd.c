@@ -153,6 +153,11 @@ static int msm_gfxpd_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+	gfxpd->genpd.domain.ops.resume_early = gfxpd->genpd.domain.ops.resume_noirq;
+	gfxpd->genpd.domain.ops.suspend_late = gfxpd->genpd.domain.ops.suspend_noirq;;
+	gfxpd->genpd.domain.ops.resume_noirq = NULL;
+	gfxpd->genpd.domain.ops.suspend_noirq = NULL;
+
 	ret = of_genpd_add_provider_simple(dev->of_node, &gfxpd->genpd);
 	if (ret)
 		return ret;

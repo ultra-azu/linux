@@ -472,7 +472,7 @@ static const struct venus_resources msm8953_res = {
 	.vmem_size = 0,
 	.vmem_addr = 0,
 	.dma_mask = 0xddc00000 - 1,
-	.fwname = "qcom/venus-4.2/venus.mdt",
+	.fwname = "venus.mdt",
 };
 
 static const struct freq_tbl sdm845_freq_table[] = {

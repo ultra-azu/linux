@@ -1315,7 +1315,7 @@ struct debug_mux_item {
 static struct debug_mux_item gcc_debug_mux_parents[] = {
 	{ 0x16a, "apcs_c0_clk" , 16, 0x0b11101c, 0x000 },
 	{ 0x16a, "apcs_c1_clk" , 16, 0x0b11101c, 0x100 },
-	{ 0x16a, "apcs_cci_clk" , 16, 0x0b11101c, 0x200 },
+	{ 0x16a, "apcs_cci_clk" , 4, 0x0b11101c, 0x200 },
 	{ 0x000, "snoc_clk" },
 	{ 0x001, "sysmmnoc_clk" },
 	{ 0x008, "pcnoc_clk" },

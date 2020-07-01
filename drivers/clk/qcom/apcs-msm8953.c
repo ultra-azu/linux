@@ -36,7 +36,7 @@
 enum {
 	CLK_C0,
 	CLK_C1,
-	//CLK_CCI,
+	CLK_CCI,
 	CLK_HFPLL,
 	CLK_MAX,
 
@@ -107,27 +107,23 @@ static struct apcs_cluster_mux {
 				&clk_cust_ops, CLK_IGNORE_UNUSED | CLK_SET_RATE_PARENT)
 		},
 	},
+}, apcs_cci_clk = {
+	.muxdiv = {
+		.reg_offset = 0x1c0050,
+		.hid_width = 5,
+		.src_width = 3,
+		.src_shift = 8,
+		.src = 4,
+		.div = 1,
+		.parent_map = apcs_mux_parent_map,
+		.clkr = {
+			.enable_reg = 0x1c0058,
+			.enable_mask = BIT(0),
+			.hw.init = CLK_HW_INIT_PARENTS_DATA("apcs-cci-clk", c0_c1_cci_parent_data,
+				&clk_cust_ops, CLK_IGNORE_UNUSED | CLK_SET_RATE_PARENT)
+		},
+	},
 };
-
-#if 0
-static const struct freq_tbl cci_freq_tbl [] = {
-	F(19200000, CLK_XO, 1, 0, 0),
-	{}
-};
-
-static struct clk_regmap_mux_div apcs_cci_clk = {
-	.cmd_rcgr = 0x1c0050,
-	.hid_width = 5,
-	.parent_map = c0_c1_cci_parent_map,
-	.clkr = {
-		.enable_reg = 0x1c0058,
-		.enable_mask = BIT(0),
-		.hw.init = CLK_HW_INIT_PARENTS("apcs-cci-clk", c0_c1_cci_parent_names,
-			&clk_rcg2_ops, CLK_IS_CRITICAL )
-	}
-};
-#endif
-
 
 static bool frac2_div_strict(u32 value, u32 divisor, u32 tr, u32 *result) {
 	u64 value2 = 2 * value;
@@ -145,7 +141,6 @@ static int mux_div_determine_rate(struct clk_hw *hw,
 	struct clk_regmap_mux_div *md = container_of(to_clk_regmap(hw),
 					struct clk_regmap_mux_div, clkr);
 	struct apcs_cluster_mux* mux = container_of(md, struct apcs_cluster_mux, muxdiv);
-	struct apcs_cluster_mux* other = mux == &apcs_c0_clk ? &apcs_c1_clk : &apcs_c0_clk;
 	struct clk_hw *gpll0_hw = clk_hw_get_parent_by_index(hw, 0);
 	unsigned long rate = clk_hw_get_rate(gpll0_hw);
 	unsigned int div;
@@ -157,7 +152,14 @@ static int mux_div_determine_rate(struct clk_hw *hw,
 		return 0;
 	}
 
-	rate = max(other->freq, req->rate);
+	if (mux == &apcs_c1_clk) {
+		rate = max(apcs_c0_clk.freq, req->rate);
+	} else if (mux == &apcs_c0_clk) {
+		rate = max(apcs_c1_clk.freq, req->rate);
+	} else {
+		rate = max(apcs_c0_clk.freq, apcs_c1_clk.freq);
+	}
+
 	if (!frac2_div_strict(rate, req->rate, 0, &div))
 		return -EINVAL;
 
@@ -232,12 +234,25 @@ static int mux_div_set_rate_and_parent(struct clk_hw *hw,
 	return mux_div_set_src_div_cache(md, src, div - 1);
 }
 
+static int cci_mux_notifier(struct notifier_block *nb,
+				unsigned long event,
+				void *data)
+{
+	long long max_rate;
+
+	if (event == POST_RATE_CHANGE) {
+		max_rate = max(apcs_c0_clk.freq, apcs_c1_clk.freq);
+		clk_set_rate(apcs_cci_clk.muxdiv.clkr.hw.clk, max_rate*10/25);
+	}
+
+	return 0;
+}
+
 static int cluster_mux_notifier(struct notifier_block *nb,
 				unsigned long event,
 				void *data)
 {
 	struct clk_regmap_mux_div *md = container_of(nb, struct clk_regmap_mux_div, clk_nb);
-	//struct apcs_cluster_mux* mux = container_of(md, struct apcs_cluster_mux, muxdiv);
 	u32 src, div;
 
 	mux_div_get_src_div_fixed(md, &src, &div);
@@ -250,7 +265,7 @@ static int cluster_mux_notifier(struct notifier_block *nb,
 		if (src != md->src || div != md->div)
 			mux_div_set_src_div(md, md->src, md->div);
 	}
-	mux_div_get_src_div_fixed(md, &src, &div);
+
 	return 0;
 }
 
@@ -261,7 +276,7 @@ static int apcs_msm8953_probe(struct platform_device *pdev)
 	struct clk_hw_onecell_data *clk_data;
 	struct clk_regmap *regmap_clks [] = {
 		&apcs_hfpll.clkr, &apcs_c0_clk.muxdiv.clkr,
-		&apcs_c1_clk.muxdiv.clkr, //&apcs_cci_clk.clkr,
+		&apcs_c1_clk.muxdiv.clkr, &apcs_cci_clk.muxdiv.clkr,
 		(struct clk_regmap*) NULL,
 	};
 	struct clk_regmap **rclk = &regmap_clks[0];
@@ -291,7 +306,7 @@ static int apcs_msm8953_probe(struct platform_device *pdev)
 	clk_data->num = CLK_MAX;
 	clk_data->hws[CLK_C0]	= &apcs_c0_clk.muxdiv.clkr.hw;
 	clk_data->hws[CLK_C1]	= &apcs_c1_clk.muxdiv.clkr.hw;
-	//clk_data->hws[CLK_CCI]	= &apcs_cci_clk.clkr.hw;
+	clk_data->hws[CLK_CCI]	= &apcs_cci_clk.muxdiv.clkr.hw;
 	clk_data->hws[CLK_HFPLL]= &apcs_hfpll.clkr.hw;
 
 	regmap = dev_get_regmap(dev->parent, NULL);
@@ -309,6 +324,10 @@ static int apcs_msm8953_probe(struct platform_device *pdev)
 
 	apcs_c1_clk.muxdiv.clk_nb.notifier_call = cluster_mux_notifier;
 	clk_notifier_register(apcs_hfpll.clkr.hw.clk, &apcs_c1_clk.muxdiv.clk_nb);
+
+	apcs_cci_clk.muxdiv.clk_nb.notifier_call = cci_mux_notifier;
+	clk_notifier_register(apcs_c1_clk.muxdiv.clkr.hw.clk, &apcs_cci_clk.muxdiv.clk_nb);
+	clk_notifier_register(apcs_c0_clk.muxdiv.clkr.hw.clk, &apcs_cci_clk.muxdiv.clk_nb);
 
 	if (ret) {
 		dev_err(dev, "failed to register regmap clock: %d\n", ret);

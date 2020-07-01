@@ -260,8 +260,8 @@
 		interrupt-parent = <&msmgpio>;
 		interrupts = <59 IRQ_TYPE_EDGE_FALLING>;
 
-		touchscreen-size-x = <2048>;
-		touchscreen-size-y = <2048>;
+		touchscreen-size-x = <4096>;
+		touchscreen-size-y = <4096>;
 
 		avdd-supply = <&reg_vdd_tsp>;
 		vdd-supply = <&reg_vdd_tsp>;

@@ -61,6 +61,30 @@
 		};					\
 	}
 
+#define OPP(freqKhz, mV, mVmax, HW)			    \
+	opp-freqKhz##000 {				    \
+		opp-hz = /bits/ 64 <freqKhz##000>;	    \
+		opp-microvolt = <mV##000 mV##000 mVmax##000>; \
+		opp-supported-hw = <HW>;		    \
+	}
+
+/*
+ * Speed bin	    SoC
+ * 2		    SDM625
+ * 6		    SDM450
+ * opp-supported-hw is bitmask of 1 << speed_bin
+ * compatible of / node has to be "qcom,msm8953"
+ */
+
+#define OPPS()				\
+	OPP( 320000, 550, 900, 0xFF);	\
+	OPP( 533334, 620, 900, 0xFF);	\
+	OPP( 800000, 680, 900, 0xFF);	\
+	OPP(1203200, 750, 900, 0x40);	\
+	OPP(1804800, 820, 900, 0x40);	\
+	OPP(1344000, 780, 900, 0x04);	\
+	OPP(2016000, 850, 900, 0x04)
+
 / {
 	interrupt-parent = <&intc>;
 	#address-cells = <2>;
@@ -238,85 +262,18 @@
 	};
 
 	cpu0_opp: cpu0-opp-table {
-		// Speed bin	    SoC
-		// 2		    SDM625
-		// 6		    SDM450
-		// opp-supported-hw is bitmask of 1 << speed_bin
-		// compatible of / node has to be "qcom,msm8953"
 		compatible = "operating-points-v2-qcom-cpu";
 		nvmem-cells = <&cpu_speed_bin>;
-
 		opp-shared;
 
-		opp-399999000 {
-			opp-hz = /bits/ 64 <399999000>;
-			opp-microvolt = <600000 600000 900000>;
-			opp-supported-hw = <0xff>;
-		};
-		opp-799999000 {
-			opp-hz = /bits/ 64 <799999000>;
-			opp-microvolt = <680000 680000 900000>;
-			opp-supported-hw = <0xff>;
-			opp-suspend;
-		};
-		opp-1190400000 {
-			opp-hz = /bits/ 64 <1190400000>;
-			opp-microvolt = <750000 750000 900000>;
-			opp-supported-hw = <0x40>;
-		};
-		opp-1344000000 {
-			opp-hz = /bits/ 64 <1344000000>;
-			opp-microvolt = <805000 805000 915000>;
-			opp-supported-hw = <0x04>;
-		};
-		opp-1785600000 {
-			opp-hz = /bits/ 64 <1785600000>;
-			opp-microvolt = <820000 820000 900000>;
-			opp-supported-hw = <0x40>;
-		};
-		opp-2016000000 {
-			opp-hz = /bits/ 64 <2016000000>;
-			opp-microvolt = <850000 850000 915000>;
-			opp-supported-hw = <0x04>;
-		};
+		OPPS();
 	};
 
 	cpu1_opp: cpu1-opp-table {
 		compatible = "operating-points-v2-qcom-cpu";
-
 		opp-shared;
 
-		opp-399999000 {
-			opp-hz = /bits/ 64 <399999000>;
-			opp-microvolt = <600000 600000 900000>;
-			opp-supported-hw = <0xff>;
-		};
-		opp-799999000 {
-			opp-hz = /bits/ 64 <799999000>;
-			opp-microvolt = <680000 680000 900000>;
-			opp-supported-hw = <0xff>;
-			opp-suspend;
-		};
-		opp-1190400000 {
-			opp-hz = /bits/ 64 <1190400000>;
-			opp-microvolt = <750000 750000 900000>;
-			opp-supported-hw = <0x40>;
-		};
-		opp-1344000000 {
-			opp-hz = /bits/ 64 <1344000000>;
-			opp-microvolt = <805000 805000 915000>;
-			opp-supported-hw = <0x04>;
-		};
-		opp-1785600000 {
-			opp-hz = /bits/ 64 <1785600000>;
-			opp-microvolt = <820000 820000 900000>;
-			opp-supported-hw = <0x40>;
-		};
-		opp-2016000000 {
-			opp-hz = /bits/ 64 <2016000000>;
-			opp-microvolt = <850000 850000 915000>;
-			opp-supported-hw = <0x04>;
-		};
+		OPPS();
 	};
 
 	timer {

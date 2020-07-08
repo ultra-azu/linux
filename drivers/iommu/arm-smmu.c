@@ -1177,6 +1177,8 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 	if (ret < 0)
 		return ret;
 
+	smmu_domain->fwspec = fwspec;
+
 	/* Ensure that the domain is finalised */
 	ret = arm_smmu_init_domain_context(domain, smmu);
 	if (ret < 0)
@@ -2298,6 +2300,10 @@ static int __maybe_unused arm_smmu_runtime_resume(struct device *dev)
 	ret = clk_bulk_enable(smmu->num_clks, smmu->clks);
 	if (ret)
 		return ret;
+
+	if (smmu->impl && unlikely(smmu->impl->resume) &&
+	    smmu->impl->resume(smmu))
+		return 0;
 
 	arm_smmu_device_reset(smmu);
 

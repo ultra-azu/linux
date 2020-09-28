@@ -172,6 +172,24 @@
 	vddio-supply = <&pm8953_l6>;
 };*/
 
+&i2c_5 {
+	status = "ok";
+
+	ti_lm3697@36 {
+			compatible = "ti,lm3697";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x36>;
+
+			led@1 {
+				reg = <1>;
+				led-sources = <0 1 2>;
+				ti,brightness-resolution = <2047>;
+				label = "white:backlight";
+			};
+	};
+};
+
 &spmi_regulators {
 	status = "okay";
 };

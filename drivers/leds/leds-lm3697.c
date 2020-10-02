@@ -78,8 +78,9 @@ struct lm3697 {
 	struct mutex lock;
 
 	int bank_cfg;
+	int num_banks;
 
-	struct lm3697_led leds[];
+	struct lm3697_led banks[];
 };
 
 static const struct reg_default lm3697_reg_defs[] = {
@@ -180,8 +181,8 @@ static int lm3697_init(struct lm3697 *priv)
 	if (ret)
 		dev_err(&priv->client->dev, "Cannot write OUTPUT config\n");
 
-	for (i = 0; i < LM3697_MAX_CONTROL_BANKS; i++) {
-		led = &priv->leds[i];
+	for (i = 0; i < priv->num_banks; i++) {
+		led = &priv->banks[i];
 		ret = ti_lmu_common_set_ramp(&led->lmu_data);
 		if (ret)
 			dev_err(&priv->client->dev, "Setting the ramp rate failed\n");
@@ -228,7 +229,7 @@ static int lm3697_probe_dt(struct lm3697 *priv)
 			goto child_out;
 		}
 
-		led = &priv->leds[i];
+		led = &priv->banks[i];
 
 		ret = ti_lmu_common_get_brt_res(&priv->client->dev,
 						child, &led->lmu_data);
@@ -307,15 +308,15 @@ static int lm3697_probe(struct i2c_client *client,
 	int ret;
 
 	count = device_get_child_node_count(&client->dev);
-	if (!count) {
-		dev_err(&client->dev, "LEDs are not defined in device tree!");
-		return -ENODEV;
-	}
+	if (!count || count > LM3697_MAX_CONTROL_BANKS)
+		return -EINVAL;
 
-	led = devm_kzalloc(&client->dev, struct_size(led, leds, count),
+	led = devm_kzalloc(&client->dev, struct_size(led, banks, count),
 			   GFP_KERNEL);
 	if (!led)
 		return -ENOMEM;
+
+	led->num_banks = count;
 
 	mutex_init(&led->lock);
 	i2c_set_clientdata(client, led);

@@ -137,6 +137,7 @@ static const struct rpmpd_desc msm8916_desc = {
 };
 
 /* msm8953 RPM Power Domains */
+DEFINE_RPMPD_PAIR(msm8953, vddmdm, vddmdm_ao, SMPA, LEVEL, 1);
 DEFINE_RPMPD_PAIR(msm8953, vddcx, vddcx_ao, SMPA, LEVEL, 2);
 DEFINE_RPMPD_PAIR(msm8953, vddmx, vddmx_ao, SMPA, LEVEL, 7);
 
@@ -148,6 +149,8 @@ static struct rpmpd *msm8953_rpmpds[] = {
 	[MSM8953_VDDCX_VFL] =	&msm8953_vddcx_vfl,
 	[MSM8953_VDDMX] =	&msm8953_vddmx,
 	[MSM8953_VDDMX_AO] =	&msm8953_vddmx_ao,
+	[MSM8953_VDDMDM] =	&msm8953_vddmdm,
+	[MSM8953_VDDMDM_AO] =	&msm8953_vddmdm_ao,
 };
 
 static const struct rpmpd_desc msm8953_desc = {

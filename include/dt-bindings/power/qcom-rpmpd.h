@@ -77,6 +77,8 @@
 #define MSM8953_VDDCX_VFL	2
 #define MSM8953_VDDMX		3
 #define MSM8953_VDDMX_AO	4
+#define MSM8953_VDDMDM		5
+#define MSM8953_VDDMDM_AO	6
 
 /* MSM8976 Power Domain Indexes */
 #define MSM8976_VDDCX		0

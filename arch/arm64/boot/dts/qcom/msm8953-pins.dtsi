@@ -42,6 +42,27 @@
 		bias-disable;
 	};
 
+	camss_mclk0_default: camss-mclk0-pins {
+		pins = "gpio26";
+		function = "cam_mclk";
+		drive-strength = <2>;
+		bias-disable;
+	};
+
+	camss_mclk1_default: camss-mclk1-pins {
+		pins = "gpio27";
+		function = "cam_mclk";
+		drive-strength = <2>;
+		bias-disable;
+	};
+
+	camss_mclk2_default: camss-mclk2-pins {
+		pins = "gpio28";
+		function = "cam_mclk";
+		drive-strength = <2>;
+		bias-disable;
+	};
+
 	mdss_te_default: mdss_te_default {
 		pins = "gpio24";
 		function = "mdp_vsync";

@@ -107,6 +107,8 @@
 #define QUINARY_TDM_RX_7	102
 #define QUINARY_TDM_TX_7	103
 #define DISPLAY_PORT_RX		104
+#define QUINARY_MI2S_RX		105
+#define QUINARY_MI2S_TX		106
 
 #endif /* __DT_BINDINGS_Q6_AFE_H__ */
 

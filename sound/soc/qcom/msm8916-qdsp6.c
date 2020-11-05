@@ -235,7 +235,7 @@ static int msm8953_qdsp6_startup(struct snd_pcm_substream *substream)
 
 	snd_soc_dai_set_sysclk(cpu_dai, clk_id,
 			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_PLAYBACK);
-	if (ret) {
+	if (ret < 0) {
 		dev_err(card->dev, "Failed to enable bit clk (clk_id = %d): %d\n", clk_id, ret);
 		return ret;
 	}

@@ -65,6 +65,32 @@
 			reg = <0x00 0xeefa1800 0x00 0x800>;
 		};
 	};
+
+	soc {
+		sound {
+			status = "okay";
+
+			pinctrl-names = "default", "sleep";
+			pinctrl-0 = <&cdc_pdm_lines_act &cdc_pdm_lines_2_act &cdc_pdm_comp_lines_act &tlmm_quin_default>;
+			pinctrl-1 = <&cdc_pdm_lines_sus &cdc_pdm_lines_2_sus &cdc_pdm_comp_lines_act &tlmm_quin_default>;
+			model = "samsung-a2015";
+
+			quinary-mi2s-dai-link {
+				link-name = "Quinary MI2S";
+				cpu {
+					sound-dai = <&q6afedai QUINARY_MI2S_RX>;
+				};
+
+				platform {
+					sound-dai = <&q6routing>;
+				};
+
+				codec {
+					sound-dai = <&speaker_codec>;
+				};
+			};
+		};
+	};
 };
 
 &sdhc_1 {
@@ -101,6 +127,13 @@
 		function = "gpio";
 		drive-strength = <2>;
 		bias-pull-down;
+	};
+
+	tlmm_quin_default: tlmm_quin_default {
+		pins = "gpio88", "gpio91", "gpio93";
+		function = "pri_mi2s";
+		drive-strength = <8>;
+		bias-disable;
 	};
 };
 
@@ -171,6 +204,71 @@
 /*&dsi_phy0 {
 	vddio-supply = <&pm8953_l6>;
 };*/
+
+&i2c_2 {
+	status = "ok";
+
+	speaker_codec: audio-codec@34 {
+		compatible = "nxp,tfa9874";
+		reg = <0x34>;
+
+		vi-fractional-delay = <0x16>;
+		tdm-slots = <0x1>;
+		tdm-slot-bits = <0xf>;
+		tdm-sample-size = <0xf>;
+		tdm-current-sense = <0x1>;
+		tdm-voltage-sense = <0x1>;
+		tdm-sink1-enable = <0x0>;
+		tdm-speaker-dcdc-slot = <0x0>;
+		tdm-dcdc-slot = <0x1>;
+		tdm-current-sense-slot = <0x1>;
+		tdm-voltage-sense-slot = <0x0>;
+		bypass-hpf = <0x0>;
+		amplifier-gain = <0xbe>;
+		bypass-lowpower = <0x1>;
+		sel-pwm-delay-src = <0x0>;
+		pwm-delay = <0x1>;
+		ctrl-attl = <0xf>;
+		tdm-speaker-gain = <0x6>;
+		lpm1-mode = <0x1>;
+		tdm-source-mapping = <0x2>;
+		tdm-sense-a-val = <0x1>;
+		tdm-sense-b-val = <0x2>;
+		cursense-comp-delay = <0x5>;
+		enable-cursense-comp = <0x1>;
+		pwms-clip-lvl = <0x1>;
+		slope-compensation-current = <0x3>;
+		dcdcoff-mode = <0x0>;
+		boost-track = <0x1>;
+		boost-hold-time = <0x8>;
+		second-boost-voltage = <0x3f>;
+		first-boost-trip-lvl = <0x9>;
+		ignore-flag-voutcomp86 = <0x0>;
+		boost-trip-lvl-track = <0xd>;
+		enable-trip-hyst = <0x1>;
+		select-clk-cs = <0x0>;
+		cs-ktemp = <0x19>;
+		cs-ktemp2 = <0x1e>;
+		cs-adc-nortz = <0x0>;
+		cs-adc-offset = <0x4>;
+		cs-classd-trans-skip = <0x1>;
+		cs-inn-short = <0x0>;
+		cs-inp-short = <0x0>;
+		volsense-pwm-selection = <0x2>;
+		bypass-otp = <0x0>;
+		test-boost-ocp = <0x0>;
+
+		#sound-dai-cells = <0>;
+		status = "okay";
+	};
+};
+
+&q6afedai {
+	dai@22 {
+		reg = <QUINARY_MI2S_RX>;
+		qcom,sd-lines = <0>;
+	};
+};
 
 &spmi_regulators {
 	status = "okay";

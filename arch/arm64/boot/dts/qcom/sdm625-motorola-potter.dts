@@ -123,6 +123,28 @@
 					 00 00 00 0C ];
 	};
 
+	cam_sensor_front_avdd: regulator-cam-front-ana {
+		compatible = "regulator-fixed";
+		regulator-name = "cam_front_avdd";
+		regulator-min-microvolt = <2800000>;
+		regulator-max-microvolt = <2800000>;
+
+		gpio = <&msmgpio 47 GPIO_ACTIVE_HIGH>;
+
+		enable-active-high;
+	};
+
+	cam_sensor_front_dvdd: regulator-cam-front-dig {
+		compatible = "regulator-fixed";
+		regulator-name = "cam_front_dvdd";
+		regulator-min-microvolt = <1000000>;
+		regulator-max-microvolt = <1000000>;
+
+		gpio = <&msmgpio 41 GPIO_ACTIVE_HIGH>;
+
+		enable-active-high;
+	};
+
 	reg_ctp: regulator-ctp {
 		compatible = "regulator-fixed";
 		regulator-name = "ctp";
@@ -177,6 +199,56 @@
 	width = <1080>;
 	height = <1920>;
 	stride = <(1080 * 3)>;
+};
+
+&cci {
+	pinctrl-names = "default";
+	pinctrl-0 = <&cci0_default>;
+
+	status = "okay";
+};
+
+&cci_i2c0 {
+	front-camera-sensor@20 {
+		compatible = "ovti,ov5695";
+		reg = <0x20>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&camss_mclk1_default>;
+
+		clocks = <&gcc GCC_CAMSS_MCLK1_CLK>;
+		clock-names = "xvclk";
+
+
+		avdd-supply = <&cam_sensor_front_avdd>;
+		dovdd-supply = <&pm8953_l10>;
+		dvdd-supply = <&cam_sensor_front_dvdd>;
+		reset-gpios = <&msmgpio 129 GPIO_ACTIVE_LOW>;
+
+		port {
+			front_camera_ep: endpoint {
+				remote-endpoint = <&csiphy2_ep>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+};
+
+&camss {
+	status = "okay";
+
+	vdda-supply = <&pm8953_s3>;
+
+	ports {
+		port@2 {
+			reg = <2>;
+			csiphy2_ep: endpoint {
+				clock-lanes = <7>;
+				data-lanes = <0 1>;
+				remote-endpoint = <&front_camera_ep>;
+			};
+		};
+	};
 };
 
 &i2c_3 {
@@ -551,8 +623,8 @@
 		regulator-max-microvolt = <3300000>;
 	};
 	l10 { // unused
-		regulator-min-microvolt = <2850000>;
-		regulator-max-microvolt = <2850000>;
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
 	};
 	l11 { // sdhci
 		regulator-min-microvolt = <2800000>;

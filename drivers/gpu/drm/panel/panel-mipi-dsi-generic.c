@@ -455,11 +455,7 @@ static int mipi_dsi_generic_probe(struct mipi_dsi_device *dsi)
 		return ret;
 	}
 
-	ret = drm_panel_add(&ctx->panel);
-	if (ret < 0) {
-		dev_err(dev, "Failed to add panel: %d\n", ret);
-		return ret;
-	}
+	drm_panel_add(&ctx->panel);
 
 	ret = mipi_dsi_attach(dsi);
 	if (ret < 0) {

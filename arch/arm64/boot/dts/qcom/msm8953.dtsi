@@ -80,6 +80,8 @@
 
 	aliases {
 		display0 = &mdss;
+		mmc0 = &sdhc_1;
+		mmc1 = &sdhc_2;
 	};
 
 	chosen {

@@ -31,8 +31,8 @@
 #define GPU_OPP(freq_khz, lvl, supp)			\
 	opp-##freq_khz##000 {				\
 		opp-hz = /bits/ 64 <freq_khz##000>;	\
-		opp-level = <lvl>;			\
 		opp-supported-hw = <supp>;		\
+		required-opps = <&lvl>;			\
 	}
 
 #define COMMON_THERMAL(n, s)				\
@@ -89,30 +89,6 @@
 		#size-cells = <2>;
 		ranges;
 		stdout-path = "display0";
-
-		framebuffer: framebuffer@90001000 {
-			compatible = "simple-framebuffer";
-			reg = <0x0 0x90001000 0x0 0x13ff000>;
-
-			format = "r8g8b8";
-
-			power-domains = <&mdss_proxy>;
-			power-domain-names = "mdss";
-
-			display = &mdss;
-
-			clocks = <&gcc GCC_MDSS_AHB_CLK>,
-				 <&gcc GCC_MDSS_AXI_CLK>,
-				 <&gcc GCC_MDSS_VSYNC_CLK>,
-				 <&gcc GCC_MDSS_MDP_CLK>,
-				 <&gcc GCC_MDSS_ESC0_CLK>;
-
-			vdd-supply = <&pm8953_l17>;
-			vdda-supply = <&pm8953_s3>;
-			vddio-supply = <&pm8953_l6>;
-
-			status = "disabled";
-		};
 	};
 
 	memory {
@@ -974,41 +950,6 @@
 			};
 		};
 
-		mdss_proxy: proxy-power-controller {
-			compatible = "pd-proxy";
-
-			power-domains = <&gcc MDSS_GDSC>;
-			power-domain-names = "mdss";
-
-			force-on-unused;
-
-			#power-domain-cells = <0>;
-		};
-
-
-		gfxpd: power-controller {
-			compatible = "pd-proxy-noirq-fix";
-			operating-points-v2 = <&gfxpd_opp>;
-
-			power-domains = <&rpmpd MSM8953_VDDCX>,
-					<&gcc OXILI_CX_GDSC>,
-					<&gcc OXILI_GX_GDSC>;
-			power-domain-names = "vdd_cx", "gdsc_cx", "gdsc_gx";
-
-			clocks = <&xo_board>;
-			clock-names = "ref";
-
-			#power-domain-cells = <0>;
-
-			gfxpd_opp: gfxpd-opp-table {
-				compatible = "operating-points-v2";
-
-				nominal {
-					opp-level = <1>;
-				};
-			};
-		};
-
 		gpu: gpu@1c00000 {
 			compatible = "qcom,adreno-506.0", "qcom,adreno";
 
@@ -1031,7 +972,11 @@
 				      "rbbmtimer",
 				      "alwayson";
 
-			power-domains = <&gfxpd>;
+			power-domains = <&gcc OXILI_CX_GDSC>,
+					<&gcc OXILI_GX_GDSC>,
+					<&rpmpd MSM8953_VDDCX>;
+			power-domain-names = "cx", "gx", "cx-supply";
+
 			iommus = <&gpu_iommu 0>;
 
 			operating-points-v2 = <&gpu_opp_table>;
@@ -1039,12 +984,12 @@
 			gpu_opp_table: opp-table {
 				compatible  ="operating-points-v2";
 
-				GPU_OPP(128000, RPM_SMD_LEVEL_LOW_SVS, 0xff);
-				GPU_OPP(230400, RPM_SMD_LEVEL_SVS, 0xff);
-				GPU_OPP(384000, RPM_SMD_LEVEL_SVS_PLUS, 0xff);
-				GPU_OPP(460800, RPM_SMD_LEVEL_NOM, 0xff);
-				GPU_OPP(576000, RPM_SMD_LEVEL_NOM_PLUS, 0xff);
-				GPU_OPP(652800, RPM_SMD_LEVEL_TURBO, 0xff);
+				GPU_OPP(128000, rpmpd_opp_low_svs, 0xff);
+				GPU_OPP(230400, rpmpd_opp_svs, 0xff);
+				GPU_OPP(384000, rpmpd_opp_svs_plus, 0xff);
+				GPU_OPP(460800, rpmpd_opp_nom, 0xff);
+				GPU_OPP(576000, rpmpd_opp_nom_plus, 0xff);
+				GPU_OPP(652800, rpmpd_opp_turbo, 0xff);
 			};
 
 			zap-shader {

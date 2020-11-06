@@ -505,14 +505,6 @@
 	};
 };
 
-&framebuffer {
-	status = "okay";
-
-	width = <1080>;
-	height = <2220>;
-	stride = <(1080 * 3)>;
-};
-
 &dsi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&mdss_te_default>;

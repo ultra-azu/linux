@@ -193,14 +193,6 @@
 	qcom,mbhc-vthreshold-high = <75 150 237 450 500>;
 };
 
-&framebuffer {
-	status = "okay";
-
-	width = <1080>;
-	height = <1920>;
-	stride = <(1080 * 3)>;
-};
-
 &cci {
 	pinctrl-names = "default";
 	pinctrl-0 = <&cci0_default>;

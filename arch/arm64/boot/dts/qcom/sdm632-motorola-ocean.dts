@@ -42,6 +42,16 @@
 			reg = <0x0 0x84300000 0x0 0x2000000>;
 		};
 
+		/delete-node/rmtfs@f2d00000;
+
+		rmtfs@ff600000 {
+			compatible = "qcom,rmtfs-mem";
+			reg = <0x0 0xff600000 0x0 0x180000>;
+			no-map;
+
+			qcom,client-id = <1>;
+		};
+
 		ramoops_mem {
 			compatible = "ramoops";
 			reg = <0x0 0xef000000 0x0 0xbf800>;
@@ -171,6 +181,13 @@
 /*&dsi_phy0 {
 	vddio-supply = <&pm8953_l6>;
 };*/
+
+&hexagon {
+	compatible = "qcom,msm8953-mss-temp-pil";
+
+	power-domains = <&rpmpd MSM8953_VDDCX>, <&rpmpd MSM8953_VDDMX>, <&rpmpd MSM8953_VDDMDM>;
+	power-domain-names = "cx", "mx", "mss";
+};
 
 &spmi_regulators {
 	status = "okay";

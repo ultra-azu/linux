@@ -146,7 +146,7 @@ static const struct regmap_config tfa987x_regmap_config = {
 
 static bool tfa987x_setup_dcdc(struct device *dev, struct regmap *rmap, u16 rev)
 {
-	u32 mcc, dcvof, dcvos, dctrip, dctrip2 = 0;
+	u32 mcc = 0, dcvof = 0, dcvos = 0, dctrip = 0, dctrip2 = 0;
 	int i;
 	u32 *dest[] = { &mcc, &dcvof, &dcvos, &dctrip, &dctrip2 };
 	const char *props[] = { "max-coil-current",

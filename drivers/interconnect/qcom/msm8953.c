@@ -1221,8 +1221,12 @@ static struct qcom_icc_node *msm8953_pcnoc_nodes[] = {
 	[SLV_PCNOC_SNOC] = &slv_pcnoc_snoc,
 };
 
-static const char * const msm8953_pcnoc_clocks[] = {
-	"bus", "bus_a", "pcnoc_usb3_axi"
+static const char * const msm8953_pcnoc_bus_clocks[] = {
+	"bus", "bus_a"
+};
+
+static const char * const msm8953_pcnoc_intf_clocks[] = {
+	"pcnoc_usb3_axi"
 };
 
 static const struct regmap_config msm8953_pcnoc_regmap_config = {
@@ -1235,8 +1239,9 @@ static const struct regmap_config msm8953_pcnoc_regmap_config = {
 
 static const struct qcom_icc_desc msm8953_pcnoc = {
 	.type = QCOM_ICC_NOC,
-	.clocks = msm8953_pcnoc_clocks,
-	.num_clocks = ARRAY_SIZE(msm8953_pcnoc_clocks),
+	.bus_clocks = msm8953_pcnoc_bus_clocks,
+	.intf_clocks = msm8953_pcnoc_intf_clocks,
+	.num_intf_clocks = ARRAY_SIZE(msm8953_pcnoc_intf_clocks),
 	.nodes = msm8953_pcnoc_nodes,
 	.num_nodes = ARRAY_SIZE(msm8953_pcnoc_nodes),
 	.qos_offset = 0x7000,
